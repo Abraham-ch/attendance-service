@@ -30,7 +30,8 @@ async fn main() -> anyhow::Result<()> {
     
     let user_routes = Router::new()
         .route("/", get(list_users).post(create_user))
-        .route("/{id}", get(get_user_by_id).put(update_user).delete(delete_user));
+        .route("/{id}", get(get_user_by_id).put(update_user).delete(delete_user))
+        .with_state(pool); //like adding a prop for multiple routes
 
     let app = Router::new()
         .route("/", get(index))

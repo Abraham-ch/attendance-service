@@ -51,7 +51,7 @@ pub struct DeleteUser{
 }
 
 #[derive(Debug, Type, Deserialize, Serialize)]
-#[sqlx(type_name = "text")]
+#[sqlx(type_name = "varchar")]
 pub enum Role {
   SuperAdmin,
   Admin,
