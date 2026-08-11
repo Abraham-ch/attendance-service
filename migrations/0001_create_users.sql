@@ -1,3 +1,5 @@
+CREATE TYPE role AS ENUM ('super_admin', 'admin', 'user');
+
 CREATE TABLE users (
   id UUID PRIMARY KEY,
   first_name VARCHAR(50) NOT NULL,
@@ -5,7 +7,7 @@ CREATE TABLE users (
   email VARCHAR(64) NOT NULL UNIQUE,
   avatar VARCHAR(2000) NOT NULL,
 
-  role VARCHAR(20) NOT NULL,
+  role role NOT NULL,
 
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()

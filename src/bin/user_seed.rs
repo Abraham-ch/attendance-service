@@ -1,5 +1,3 @@
-use std::println;
-
 use chrono::Utc;
 use dotenvy::var;
 use attendance_service::schema::user::{User, Role};
@@ -173,7 +171,14 @@ async fn main() {
       updated_at: Utc::now()
     };
     
-    sqlx::query("INSERT INTO users (id, first_name, last_name, avatar, email, role, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6 ,$7, $8) ON CONFLICT DO NOTHING")
+    sqlx::query(
+        r#"
+                INSERT INTO users 
+                    (id, first_name, last_name, avatar, email, role, created_at, updated_at) 
+                VALUES 
+                    ($1, $2, $3, $4, $5, $6 ,$7, $8) 
+                ON CONFLICT DO NOTHING
+            "#)
       .bind(&new_user.id)
       .bind(&new_user.first_name)
       .bind(&new_user.last_name)

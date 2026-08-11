@@ -24,13 +24,14 @@ pub struct NewUserHandler{
   pub role: String,
 }
 
-#[derive(Debug)]
-pub struct UpdateUser<'a>{
-  pub first_name: &'a String,
-  pub last_name: &'a String,
-  pub email: &'a String,
-  pub avatar: &'a String,
-  pub role: &'a String,
+#[derive(FromRow, Debug, Deserialize, Serialize)]
+pub struct UpdateUser{
+  pub id: Uuid,
+  pub first_name: String,
+  pub last_name: String,
+  pub email: String,
+  pub avatar: String,
+  pub role: Role,
 }
 
 #[derive(FromRow, Debug, Deserialize, Serialize)]
@@ -51,7 +52,8 @@ pub struct DeleteUser{
 }
 
 #[derive(Debug, Type, Deserialize, Serialize)]
-#[sqlx(type_name = "varchar")]
+#[sqlx(type_name = "role")]
+#[sqlx(rename_all = "snake_case")]
 pub enum Role {
   SuperAdmin,
   Admin,
