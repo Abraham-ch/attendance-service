@@ -26,12 +26,11 @@ pub struct NewUserHandler{
 
 #[derive(FromRow, Debug, Deserialize, Serialize)]
 pub struct UpdateUser{
-  pub id: Uuid,
-  pub first_name: String,
-  pub last_name: String,
-  pub email: String,
-  pub avatar: String,
-  pub role: Role,
+  pub first_name: Option<String>,
+  pub last_name: Option<String>,
+  pub email: Option<String>,
+  pub avatar: Option<String>,
+  pub role: Option<Role>,
 }
 
 #[derive(FromRow, Debug, Deserialize, Serialize)]

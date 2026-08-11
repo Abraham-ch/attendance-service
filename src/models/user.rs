@@ -66,14 +66,13 @@ pub async fn update_user(State(pool): State<PgPool>, Path(id): Path<Uuid>, Json(
         UPDATE
             users
             SET
-                first_name = $1,
-                last_name = $2,
-                email = $3,
-                avatar = $4,
-                role = $5
+                first_name = COALESCE($1, first_name),
+                last_name = COALESCE($2, last_name),
+                email = COALESCE($3, email),
+                avatar = COALESCE($4, avatar),
+                role = COALESCE($5, role)
         WHERE id = $6
         RETURNING 
-            id,
             first_name,
             last_name,
             email,
@@ -84,7 +83,7 @@ pub async fn update_user(State(pool): State<PgPool>, Path(id): Path<Uuid>, Json(
     user_to_update.last_name,
     user_to_update.email,
     user_to_update.avatar,
-    user_to_update.role as Role,
+    user_to_update.role as Option<Role>,
     id
     )
     .fetch_one(&pool)
@@ -95,6 +94,12 @@ pub async fn update_user(State(pool): State<PgPool>, Path(id): Path<Uuid>, Json(
 }
 
 #[axum::debug_handler]
-pub async fn delete_user(Path(id): Path<User>) -> String {
+pub async fn delete_user(State(pool): State<PgPool>, Path(id): Path<Uuid>) -> String {
+
+  sqlx::query!("DELETE FROM users WHERE id = $1", id)
+  .execute(&pool)
+  .await
+  .expect("Failed to delete user.");
+
   return format!( "User with id {:?} deleted", id)
 }
