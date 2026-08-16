@@ -2,7 +2,7 @@ use anyhow::{Context, Ok};
 use dotenvy::{dotenv, var};
 use axum::{Router, routing::{get}};
 
-use attendance_service::models::user::{create_user, delete_user, get_user_by_id, list_users, update_user};
+use attendance_service::handlers::user::{create_user, delete_user, get_user_by_id, list_users, update_user};
 use sqlx::postgres::PgPoolOptions;
 
 async fn index() -> &'static str { "Home" }
