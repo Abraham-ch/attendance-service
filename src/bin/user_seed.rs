@@ -16,6 +16,7 @@ async fn main() {
   
   let mut tx = pool.begin().await.expect("Failed to initialize transaction");
 
+  //TODO: run migration and add password to continue with jwt 
   let users = vec![
     (
         "John",

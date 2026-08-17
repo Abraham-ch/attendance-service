@@ -1,9 +1,10 @@
 use anyhow::{Context, Ok};
 use dotenvy::{dotenv, var};
-use axum::{Router, routing::{get}};
+use axum::{Router, http::HeaderValue, routing::get};
 
 use attendance_service::handlers::user::{create_user, delete_user, get_user_by_id, list_users, update_user};
-use sqlx::postgres::PgPoolOptions;
+use sqlx::{postgres::PgPoolOptions};
+use tower_http::cors::{Any, CorsLayer};
 
 async fn index() -> &'static str { "Home" }
 
@@ -12,7 +13,17 @@ async fn main() -> anyhow::Result<()> {
     dotenv().ok();
 
     let db = var("DATABASE_URL").context("Expected database url.")?;
-    
+    let api = var("API_URL").context("Expected API url")?;
+    let origin = var("ALLOWED_ORIGIN").context("Expected origin url for cors.")?;
+
+    /* 
+    in case we have multiple origins just
+    let origins = [
+        "http://example.com".parse().unwrap(),
+        ...
+    ];
+    */
+
     let pool = PgPoolOptions::new()
         .connect(&db)
         .await
@@ -26,7 +37,10 @@ async fn main() -> anyhow::Result<()> {
 
     println!("Connected on {}", &db);
 
-    let api = var("API_URL").context("Expected API url")?;
+    let cors = CorsLayer::new()
+    .allow_origin(origin.parse::<HeaderValue>().unwrap())
+    .allow_methods(Any)
+    .allow_headers(Any);
     
     let user_routes = Router::new()
         .route("/", get(list_users).post(create_user))
@@ -35,7 +49,8 @@ async fn main() -> anyhow::Result<()> {
 
     let app = Router::new()
         .route("/", get(index))
-        .nest("/user", user_routes);
+        .nest("/user", user_routes)
+        .layer(cors);
 
     let listener = tokio::net::TcpListener::bind(&api).await.context(format!("Failed to listen on port: {}", &api))?;
     println!("Listening on {}", &api);

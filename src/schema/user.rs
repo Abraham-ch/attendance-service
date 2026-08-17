@@ -2,20 +2,27 @@ use sqlx::{FromRow, prelude::Type};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
+use validator::Validate;
 
-#[derive(FromRow, Debug, Deserialize, Serialize)]
+#[derive(FromRow, Debug, Deserialize, Serialize, Validate)]
 pub struct NewUser{
+  #[validate(length(min=3, max=20))]
   pub first_name: String,
+  #[validate(length(min=3, max=20))]
   pub last_name: String,
+  #[validate(email)]
   pub email: String,
   pub avatar: String,
   pub role: Role,
 }
 
-#[derive(FromRow, Debug, Deserialize, Serialize)]
+#[derive(FromRow, Debug, Deserialize, Serialize, Validate)]
 pub struct UpdateUser{
+  #[validate(length(min=3, max=20))]
   pub first_name: Option<String>,
+  #[validate(length(min=3, max=20))]
   pub last_name: Option<String>,
+  #[validate(email)]
   pub email: Option<String>,
   pub avatar: Option<String>,
   pub role: Option<Role>,
@@ -42,7 +49,7 @@ pub struct DeleteUser{
 #[sqlx(type_name = "role")]
 #[sqlx(rename_all = "snake_case")]
 pub enum Role {
-  SuperAdmin,
-  Admin,
-  User,
+  SuperAdmin, //me
+  Admin, // teachers or instructors
+  User, // students or representatives
 }

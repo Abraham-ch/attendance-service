@@ -1,6 +1,7 @@
 use axum::{Json, extract::{Path, State}, http::StatusCode};
 use sqlx::PgPool;
 use uuid::Uuid;
+use validator::Validate;
 
 use crate::{repository::user::{create_one, delete_one, find_all, get_by_id, update_one}, schema::user::{NewUser, UpdateUser, User}};
 
@@ -17,6 +18,8 @@ pub async fn list_users(State(pool): State<PgPool>) -> Result<(StatusCode, Json<
 
 #[axum::debug_handler]
 pub async fn create_user(State(pool): State<PgPool>, Json(new_user): Json<NewUser>) -> Result<(StatusCode, Json<User>), (StatusCode, String)> {
+
+  new_user.validate().map_err(|e| (StatusCode::BAD_REQUEST, e.to_string()))?;
   let create_user = create_one(&pool, new_user).await;
 
   match create_user {
@@ -40,7 +43,8 @@ pub async fn get_user_by_id(State(pool): State<PgPool>, Path(id): Path<Uuid>) ->
 
 #[axum::debug_handler]
 pub async fn update_user(State(pool): State<PgPool>, Path(id): Path<Uuid>, Json(user_to_update): Json<UpdateUser>) -> Result<(StatusCode, Json<UpdateUser>), (StatusCode, String)> {
-  
+
+  user_to_update.validate().map_err(|e| (StatusCode::BAD_REQUEST, e.to_string()))?;
   let updated_user = update_one(&pool, id, user_to_update).await;
   
   match updated_user {
