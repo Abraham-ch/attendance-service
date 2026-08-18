@@ -1,13 +1,15 @@
+CREATE TYPE assistance_status AS ENUM ('present', 'absent', 'late', 'excused');
+
 ALTER TABLE users
 ADD password VARCHAR(2000) NOT NULL;
 
 CREATE TABLE students (
   id UUID PRIMARY KEY,
-  dni NUMBER NOT NULL UNIQUE,
+  dni BIGINT NOT NULL UNIQUE,
   first_name VARCHAR(50) NOT NULL,
   last_name VARCHAR(64) NOT NULL,
   gender VARCHAR(10) NOT NULL,
-  phone NUMBER,
+  phone BIGINT,
   address TEXT,
 
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -33,8 +35,6 @@ CREATE TABLE student_representatives (
     PRIMARY KEY (student_id, representative_id)
 );
 
-CREATE TYPE assitance_status AS ENUM ('present', 'absent', 'late', 'excused');
-
 CREATE TABLE assistances (
   id UUID PRIMARY KEY,
   student_id UUID NOT NULL REFERENCES students(id),
@@ -44,7 +44,7 @@ CREATE TABLE assistances (
 
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-)
+);
 
 CREATE TRIGGER students_updated_at
 BEFORE UPDATE ON students
