@@ -59,3 +59,18 @@ pub enum Role {
     Admin, // teachers or instructors
     User, // students or representatives
 }
+
+#[derive(Debug, Deserialize, Serialize, Validate)]
+pub struct AuthUser{
+    #[validate(email)]
+    pub email: String,
+    #[validate(length(min=10, max=20), custom(function="valid_password"))]
+    pub password: String
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct Claims {
+    pub sub: String,  // user id
+    pub role: Role,
+    pub exp: usize,   // expiration timestamp
+}

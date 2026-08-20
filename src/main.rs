@@ -2,7 +2,7 @@ use anyhow::{Context, Ok};
 use dotenvy::{dotenv, var};
 use axum::{Router, http::HeaderValue, routing::get};
 
-use attendance_service::handlers::user::{create_user, delete_user, get_user_by_id, list_users, update_user};
+use attendance_service::{handlers::{auth::login_user, user::{create_user, delete_user, get_user_by_id, list_users, update_user}}, schema::app::AppState};
 use sqlx::{postgres::PgPoolOptions};
 use tower_http::cors::{Any, CorsLayer};
 
@@ -15,6 +15,7 @@ async fn main() -> anyhow::Result<()> {
     let db = var("DATABASE_URL").context("Expected database url.")?;
     let api = var("API_URL").context("Expected API url")?;
     let origin = var("ALLOWED_ORIGIN").context("Expected origin url for cors.")?;
+    let secret_key = var("SECRET_KEY").context("Expected secret key.")?;
 
     /* 
     in case we have multiple origins just
@@ -45,11 +46,16 @@ async fn main() -> anyhow::Result<()> {
     let user_routes = Router::new()
         .route("/", get(list_users).post(create_user))
         .route("/{id}", get(get_user_by_id).patch(update_user).delete(delete_user))
-        .with_state(pool); //like adding a prop for multiple routes
+        .with_state(pool.clone()); //like adding a prop for multiple routes
+
+    let auth_route: Router = Router::new()
+        .route("/", get("Auth section").post(login_user))
+        .with_state(AppState { pool, secret: secret_key });
 
     let app = Router::new()
         .route("/", get(index))
         .nest("/user", user_routes)
+        .nest("/auth", auth_route)
         .layer(cors);
 
     let listener = tokio::net::TcpListener::bind(&api).await.context(format!("Failed to listen on port: {}", &api))?;

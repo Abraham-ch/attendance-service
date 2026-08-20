@@ -1,5 +1,5 @@
 use chrono::Utc;
-use sqlx::{PgPool, postgres::PgQueryResult};
+use sqlx::{PgPool, postgres::{PgQueryResult}};
 use uuid::Uuid;
 
 use crate::schema::user::{NewUser, Role, UpdateUser, User};
@@ -141,4 +141,27 @@ pub async fn delete_one(pool: &PgPool, id: Uuid) -> Result<PgQueryResult, sqlx::
     sqlx::query!("DELETE FROM users WHERE id = $1", id)
         .execute(pool)
         .await
+}
+
+pub async fn find_by_email(pool: &PgPool, email: String) -> Result<User, sqlx::Error> {
+    sqlx::query_as!(
+        User,
+        r#"
+            SELECT
+                id,
+                first_name,
+                last_name,
+                email,
+                password,
+                avatar,
+                role AS "role: Role",
+                created_at,
+                updated_at
+            FROM users 
+            WHERE email = $1
+        "#,
+        email
+    )
+    .fetch_one(pool)
+    .await
 }
