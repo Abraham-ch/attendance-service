@@ -1,7 +1,13 @@
+use std::{sync::Arc, time::{SystemTime, UNIX_EPOCH}};
+
 use argon2::{Argon2, PasswordHash, PasswordHasher, PasswordVerifier, password_hash::{SaltString, rand_core::OsRng}};
-use axum::http::StatusCode;
+use axum::{Json, http::StatusCode};
+use jsonwebtoken::{DecodingKey, EncodingKey, Header, Validation, decode, encode};
 use regex::Regex;
+use serde_json::Value;
 use validator::ValidationError;
+
+use crate::schema::{app::AppState, user::{Claims, User}};
 
 pub fn hash_password(password: &str) -> Result<String, StatusCode>{
     let salt = SaltString::generate(&mut OsRng);
@@ -36,4 +42,36 @@ pub fn valid_password(password: &str) -> Result<(), ValidationError> {
         true => Ok(()),
         false => Err(ValidationError::new("Need to improve your password."))
     }
+}
+
+pub fn create_token(user: User, state: AppState) -> Result<(StatusCode, Json<Value>), (StatusCode, String)> {
+    let exp = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap()
+        .as_secs() as usize + 86400;
+
+    let claim = Claims{
+        sub: user.id.to_string(),
+        role: user.role,
+        exp: exp
+    };
+
+    let token = encode(&Header::default(), &claim, &EncodingKey::from_secret(state.secret.as_ref()));
+
+    match token {
+        Ok(result) => Ok((StatusCode::OK, Json(serde_json::json!({ "token": result })))),
+        Err(_) => Err((StatusCode::INTERNAL_SERVER_ERROR, "Token couldn't be generated.".to_string()))
+    }
+}
+
+pub fn validate_token(state: Arc<AppState>, token: &str) -> bool {
+    let validation = Validation::default();
+
+    let token_data = decode::<Claims>(
+        &token,
+        &DecodingKey::from_secret(state.secret.as_ref()),
+        &validation
+    );
+
+    token_data.is_ok()
 }

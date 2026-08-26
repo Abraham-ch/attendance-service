@@ -1,10 +1,12 @@
+use std::{sync::Arc, time::Duration};
+
 use anyhow::{Context, Ok};
 use dotenvy::{dotenv, var};
-use axum::{Router, http::HeaderValue, routing::get};
+use axum::{Router, http::{HeaderValue, StatusCode}, routing::{get, patch, post}};
 
-use attendance_service::{handlers::{auth::login_user, user::{create_user, delete_user, get_user_by_id, list_users, update_user}}, schema::app::AppState};
+use attendance_service::{handlers::{auth::login_user, user::{create_user, delete_user, get_user_by_id, list_users, update_user}}, middlewares::user::auth_middleware, schema::app::AppState};
 use sqlx::{postgres::PgPoolOptions};
-use tower_http::cors::{Any, CorsLayer};
+use tower_http::{compression::CompressionLayer, cors::{Any, CorsLayer}, limit::RequestBodyLimitLayer, timeout::TimeoutLayer, trace::TraceLayer};
 
 async fn index() -> &'static str { "Home" }
 
@@ -42,24 +44,37 @@ async fn main() -> anyhow::Result<()> {
     .allow_origin(origin.parse::<HeaderValue>().unwrap())
     .allow_methods(Any)
     .allow_headers(Any);
-    
-    let user_routes = Router::new()
-        .route("/", get(list_users).post(create_user))
-        .route("/{id}", get(get_user_by_id).patch(update_user).delete(delete_user))
-        .with_state(pool.clone()); //like adding a prop for multiple routes
 
-    let auth_route: Router = Router::new()
-        .route("/", get("Auth section").post(login_user))
-        .with_state(AppState { pool, secret: secret_key });
+    let appstate = AppState {
+        pool,
+        secret: secret_key
+    };
+
+    let user_routes = Router::new()
+        .route("/", patch(update_user).post(create_user));
+
+    let admin_routes: Router<AppState> = Router::new()
+        .route("/", get(list_users))
+        .route("/{id}", get(get_user_by_id).delete(delete_user))
+        .route_layer(axum::middleware::from_fn_with_state(Arc::new(appstate.clone()),auth_middleware));
+
+    let auth_route: Router<AppState> = Router::new()
+        .route("/", post(login_user));
 
     let app = Router::new()
         .route("/", get(index))
+        .nest("/user", admin_routes)
         .nest("/user", user_routes)
         .nest("/auth", auth_route)
-        .layer(cors);
+        .layer(TraceLayer::new_for_http())
+        .layer(CompressionLayer::new())
+        .layer(TimeoutLayer::with_status_code(StatusCode::REQUEST_TIMEOUT, Duration::from_secs(30)))
+        .layer(RequestBodyLimitLayer::new(1024 * 1024))
+        .layer(cors)
+        .with_state(appstate);
 
     let listener = tokio::net::TcpListener::bind(&api).await.context(format!("Failed to listen on port: {}", &api))?;
-    println!("Listening on {}", &api);
+    println!("Listening on http://{}", &api);
     axum::serve(listener, app).await.context("Failed to serve the app")?;
 
     Ok(())
