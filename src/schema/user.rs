@@ -33,7 +33,7 @@ pub struct UpdateUser{
     pub role: Option<Role>
 }
 
-#[derive(FromRow, Debug, Deserialize, Serialize)]
+#[derive(FromRow, Debug, Deserialize, Serialize, Clone)]
 pub struct User{
     pub id: Uuid,
     pub first_name: String,
@@ -51,7 +51,7 @@ pub struct DeleteUser{
     pub id: Uuid,
 }
 
-#[derive(Debug, Type, Deserialize, Serialize)]
+#[derive(Debug, Type, Deserialize, Serialize, Clone)]
 #[sqlx(type_name = "role")]
 #[sqlx(rename_all = "snake_case")]
 pub enum Role {
@@ -66,6 +66,12 @@ pub struct AuthUser{
     pub email: String,
     #[validate(length(min=10, max=20), custom(function="valid_password"))]
     pub password: String
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct AuthResponse{
+    pub user: User,
+    pub token: String,
 }
 
 #[derive(Serialize, Deserialize)]

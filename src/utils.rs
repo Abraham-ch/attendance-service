@@ -4,10 +4,9 @@ use argon2::{Argon2, PasswordHash, PasswordHasher, PasswordVerifier, password_ha
 use axum::{Json, http::StatusCode};
 use jsonwebtoken::{DecodingKey, EncodingKey, Header, Validation, decode, encode};
 use regex::Regex;
-use serde_json::Value;
 use validator::ValidationError;
 
-use crate::schema::{app::AppState, user::{Claims, User}};
+use crate::schema::{app::AppState, user::{AuthResponse, Claims, User}};
 
 pub fn hash_password(password: &str) -> Result<String, StatusCode>{
     let salt = SaltString::generate(&mut OsRng);
@@ -44,7 +43,7 @@ pub fn valid_password(password: &str) -> Result<(), ValidationError> {
     }
 }
 
-pub fn create_token(user: User, state: AppState) -> Result<(StatusCode, Json<Value>), (StatusCode, String)> {
+pub fn create_token(user: User, state: AppState) -> Result<(StatusCode, Json<AuthResponse>), (StatusCode, String)> {
     let exp = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .unwrap()
@@ -52,14 +51,14 @@ pub fn create_token(user: User, state: AppState) -> Result<(StatusCode, Json<Val
 
     let claim = Claims{
         sub: user.id.to_string(),
-        role: user.role,
+        role: user.role.clone(),
         exp: exp
     };
 
     let token = encode(&Header::default(), &claim, &EncodingKey::from_secret(state.secret.as_ref()));
 
     match token {
-        Ok(result) => Ok((StatusCode::OK, Json(serde_json::json!({ "token": result })))),
+        Ok(result) => Ok((StatusCode::OK, Json(AuthResponse {user, token: result}))),
         Err(_) => Err((StatusCode::INTERNAL_SERVER_ERROR, "Token couldn't be generated.".to_string()))
     }
 }

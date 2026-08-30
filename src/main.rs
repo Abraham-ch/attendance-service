@@ -2,7 +2,7 @@ use std::{sync::Arc, time::Duration};
 
 use anyhow::{Context, Ok};
 use dotenvy::{dotenv, var};
-use axum::{Router, http::{HeaderValue, StatusCode}, routing::{get, patch, post}};
+use axum::{Router, http::{HeaderValue, Method, StatusCode}, routing::{get, patch, post}};
 
 use attendance_service::{handlers::{auth::login_user, user::{create_user, delete_user, get_user_by_id, list_users, update_user}}, middlewares::user::auth_middleware, schema::app::AppState};
 use sqlx::{postgres::PgPoolOptions};
@@ -42,7 +42,7 @@ async fn main() -> anyhow::Result<()> {
 
     let cors = CorsLayer::new()
     .allow_origin(origin.parse::<HeaderValue>().unwrap())
-    .allow_methods(Any)
+    .allow_methods([Method::GET, Method::POST, Method::PATCH, Method::DELETE, Method::OPTIONS])
     .allow_headers(Any);
 
     let appstate = AppState {
