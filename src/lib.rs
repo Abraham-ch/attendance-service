@@ -4,3 +4,4 @@ pub mod handlers;
 pub mod repository;
 pub mod utils;
 pub mod middlewares;
+pub mod docs;

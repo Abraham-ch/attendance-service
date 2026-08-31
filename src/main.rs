@@ -1,12 +1,24 @@
 use std::{sync::Arc, time::Duration};
 
+use aide::{axum::ApiRouter, openapi::{OpenApi, Tag}, transform::TransformOpenApi};
 use anyhow::{Context, Ok};
 use dotenvy::{dotenv, var};
-use axum::{Router, http::{HeaderValue, Method, StatusCode}, routing::{get, patch, post}};
+use axum::{Extension, Json, http::{HeaderValue, Method, StatusCode}, routing::{get, patch, post}};
 
-use attendance_service::{handlers::{auth::login_user, user::{create_user, delete_user, get_user_by_id, list_users, update_user}}, middlewares::user::auth_middleware, schema::app::AppState};
+use attendance_service::{
+    docs::docs, 
+    handlers::{
+        auth::login_user, 
+        user::{create_user, delete_user, get_user_by_id, list_users, update_user}}, 
+    middlewares::user::auth_middleware, 
+    schema::{
+        app::AppState, 
+        errors::AppError
+    }
+};
 use sqlx::{postgres::PgPoolOptions};
 use tower_http::{compression::CompressionLayer, cors::{Any, CorsLayer}, limit::RequestBodyLimitLayer, timeout::TimeoutLayer, trace::TraceLayer};
+use uuid::Uuid;
 
 async fn index() -> &'static str { "Home" }
 
@@ -50,22 +62,27 @@ async fn main() -> anyhow::Result<()> {
         secret: secret_key
     };
 
-    let user_routes = Router::new()
+    let mut open_api = OpenApi::default();
+
+    let user_routes = ApiRouter::new()
         .route("/", patch(update_user).post(create_user));
 
-    let admin_routes: Router<AppState> = Router::new()
+    let admin_routes: ApiRouter<AppState> = ApiRouter::new()
         .route("/", get(list_users))
         .route("/{id}", get(get_user_by_id).delete(delete_user))
         .route_layer(axum::middleware::from_fn_with_state(Arc::new(appstate.clone()),auth_middleware));
 
-    let auth_route: Router<AppState> = Router::new()
+    let auth_route: ApiRouter<AppState> = ApiRouter::new()
         .route("/", post(login_user));
 
-    let app = Router::new()
+    let app = ApiRouter::new()
         .route("/", get(index))
         .nest("/user", admin_routes)
         .nest("/user", user_routes)
         .nest("/auth", auth_route)
+        .nest("/docs", docs(appstate.clone()).into())
+        .finish_api_with(&mut open_api, api_docs)
+        .layer(Extension(Arc::new(open_api)))
         .layer(TraceLayer::new_for_http())
         .layer(CompressionLayer::new())
         .layer(TimeoutLayer::with_status_code(StatusCode::REQUEST_TIMEOUT, Duration::from_secs(30)))
@@ -78,4 +95,33 @@ async fn main() -> anyhow::Result<()> {
     axum::serve(listener, app).await.context("Failed to serve the app")?;
 
     Ok(())
+}
+
+fn api_docs(api: TransformOpenApi) -> TransformOpenApi {
+    api.title("Aide axum Open API")
+        .summary("An example Todo application")
+        .description(include_str!("../README.md"))
+        .tag(Tag {
+            name: "todo".into(),
+            description: Some("Todo Management".into()),
+            ..Default::default()
+        })
+        .security_scheme(
+            "ApiKey",
+            aide::openapi::SecurityScheme::ApiKey {
+                location: aide::openapi::ApiKeyLocation::Header,
+                name: "X-Auth-Key".into(),
+                description: Some("A key that is ignored.".into()),
+                extensions: Default::default(),
+            },
+        )
+        .default_response_with::<Json<AppError>, _>(|res| {
+            res.example(AppError {
+                error: "some error happened".to_string(),
+                error_details: None,
+                error_id: Uuid::nil(),
+                // This is not visible.
+                status: StatusCode::IM_A_TEAPOT,
+            })
+        })
 }
