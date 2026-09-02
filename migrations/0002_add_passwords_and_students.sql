@@ -1,5 +1,21 @@
 CREATE TYPE assistance_status AS ENUM ('present', 'absent', 'late', 'excused');
 
+CREATE TYPE gender AS ENUM ('male', 'female');
+
+CREATE TYPE relationship AS ENUM (
+  'mother',
+  'father',
+  'step_mother',
+  'step_father',
+  'grand_mother',
+  'grand_father',
+  'sibling',
+  'aunt',
+  'uncle',
+  'legal_guardian',
+  'other'
+);
+
 ALTER TABLE users
 ADD password VARCHAR(2000) NOT NULL;
 
@@ -8,7 +24,7 @@ CREATE TABLE students (
   dni BIGINT NOT NULL UNIQUE,
   first_name VARCHAR(50) NOT NULL,
   last_name VARCHAR(64) NOT NULL,
-  gender VARCHAR(10) NOT NULL,
+  gender gender NOT NULL,
   phone BIGINT,
   address TEXT,
 
@@ -29,7 +45,7 @@ CREATE TABLE representatives (
 CREATE TABLE student_representatives (
     student_id UUID NOT NULL REFERENCES students(id),
     representative_id UUID NOT NULL REFERENCES representatives(id),
-    relationship TEXT NOT NULL, -- 'mother', 'father', 'guardian'
+    relationship relationship NOT NULL,
     is_primary BOOLEAN NOT NULL DEFAULT false,
 
     PRIMARY KEY (student_id, representative_id)

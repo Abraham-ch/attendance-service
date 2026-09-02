@@ -1,3 +1,4 @@
+use schemars::JsonSchema;
 use sqlx::{FromRow, prelude::Type};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
@@ -5,7 +6,7 @@ use uuid::Uuid;
 use validator::Validate;
 use crate::utils::valid_password;
 
-#[derive(FromRow, Debug, Deserialize, Serialize, Validate)]
+#[derive(FromRow, Debug, Deserialize, Serialize, Validate, JsonSchema)]
 pub struct NewUser{
     #[validate(length(min=3, max=20))]
     pub first_name: String,
@@ -19,7 +20,7 @@ pub struct NewUser{
     pub role: Role
 }
 
-#[derive(FromRow, Debug, Deserialize, Serialize, Validate)]
+#[derive(FromRow, Debug, Deserialize, Serialize, Validate, JsonSchema)]
 pub struct UpdateUser{
     #[validate(length(min=3, max=20))]
     pub first_name: Option<String>,
@@ -33,7 +34,7 @@ pub struct UpdateUser{
     pub role: Option<Role>
 }
 
-#[derive(FromRow, Debug, Deserialize, Serialize, Clone)]
+#[derive(FromRow, Debug, Deserialize, Serialize, Clone, JsonSchema)]
 pub struct User{
     pub id: Uuid,
     pub first_name: String,
@@ -51,7 +52,7 @@ pub struct DeleteUser{
     pub id: Uuid,
 }
 
-#[derive(Debug, Type, Deserialize, Serialize, Clone)]
+#[derive(Debug, Type, Deserialize, Serialize, Clone, JsonSchema)]
 #[sqlx(type_name = "role")]
 #[sqlx(rename_all = "snake_case")]
 pub enum Role {
@@ -60,7 +61,7 @@ pub enum Role {
     User, // students or representatives
 }
 
-#[derive(Debug, Deserialize, Serialize, Validate)]
+#[derive(Debug, Deserialize, Serialize, Validate, JsonSchema)]
 pub struct AuthUser{
     #[validate(email)]
     pub email: String,
