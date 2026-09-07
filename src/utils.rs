@@ -1,12 +1,12 @@
 use std::{sync::Arc, time::{SystemTime, UNIX_EPOCH}};
 
 use argon2::{Argon2, PasswordHash, PasswordHasher, PasswordVerifier, password_hash::{SaltString, rand_core::OsRng}};
-use axum::{Json, http::StatusCode};
-use jsonwebtoken::{DecodingKey, EncodingKey, Header, Validation, decode, encode};
+use axum::http::StatusCode;
+use jsonwebtoken::{DecodingKey, EncodingKey, Header, Validation, decode, encode, errors::Error};
 use regex::Regex;
 use validator::ValidationError;
 
-use crate::schema::{app::AppState, user::{AuthResponse, Claims, User}};
+use crate::schema::{app::AppState, user::Claims};
 
 pub fn hash_password(password: &str) -> Result<String, StatusCode>{
     let salt = SaltString::generate(&mut OsRng);
@@ -43,24 +43,19 @@ pub fn valid_password(password: &str) -> Result<(), ValidationError> {
     }
 }
 
-pub fn create_token(user: User, state: AppState) -> Result<(StatusCode, Json<AuthResponse>), (StatusCode, String)> {
+pub fn create_token(claim: Claims, state: AppState) -> Result<String, Error> {
     let exp = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .unwrap()
-        .as_secs() as usize + 86400;
+        .as_secs() as usize + claim.exp;
 
     let claim = Claims{
-        sub: user.id.to_string(),
-        role: user.role.clone(),
+        id: claim.id,
+        param: claim.param,
         exp: exp
     };
 
-    let token = encode(&Header::default(), &claim, &EncodingKey::from_secret(state.secret.as_ref()));
-
-    match token {
-        Ok(result) => Ok((StatusCode::OK, Json(AuthResponse {user, token: result}))),
-        Err(_) => Err((StatusCode::INTERNAL_SERVER_ERROR, "Token couldn't be generated.".to_string()))
-    }
+    encode(&Header::default(), &claim, &EncodingKey::from_secret(state.secret.as_ref()))
 }
 
 pub fn validate_token(state: Arc<AppState>, token: &str) -> bool {

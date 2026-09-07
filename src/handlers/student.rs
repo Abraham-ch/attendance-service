@@ -2,7 +2,7 @@ use axum::{Json, extract::{Path, State}, http::StatusCode};
 use uuid::Uuid;
 use validator::Validate;
 
-use crate::{repository::student::{create_one, delete_one, find_all, get_by_id, update_one}, schema::{app::AppState, student::{NewStudent, Student, UpdateStudent}}};
+use crate::{repository::student::{create_one, delete_one, find_all, get_by_id, update_one}, schema::{app::AppState, student::{NewStudent, Student, StudentResponse, UpdateStudent}}};
 
 #[axum::debug_handler]
 pub async fn list_students(State(state): State<AppState>) -> Result<(StatusCode, Json<Vec<Student>>), (StatusCode, String)>{ 
@@ -16,11 +16,11 @@ pub async fn list_students(State(state): State<AppState>) -> Result<(StatusCode,
 }
 
 #[axum::debug_handler]
-pub async fn create_student(State(state): State<AppState>, Json(new_student): Json<NewStudent>) -> Result<(StatusCode, Json<Student>), (StatusCode, String)> {
+pub async fn create_student(State(state): State<AppState>, Json(new_student): Json<NewStudent>) -> Result<(StatusCode, Json<StudentResponse>), (StatusCode, String)> {
 
     new_student.validate().map_err(|e| (StatusCode::BAD_REQUEST, e.to_string()))?;
-    let create_student: Result<Student, sqlx::Error> = create_one(&state.pool, new_student).await;
-
+    let create_student: Result<StudentResponse, sqlx::Error> = create_one(state, new_student).await;
+    //TODO: catch the repeated email error
     match create_student {
         Ok(result) => Ok((StatusCode::CREATED, Json(result))),
         Err(sqlx::Error::Database(db_err)) if db_err.is_unique_violation() =>

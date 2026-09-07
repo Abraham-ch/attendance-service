@@ -14,12 +14,12 @@ pub enum Gender {
 }
 
 #[derive(FromRow, Debug, Deserialize, Serialize, Validate, JsonSchema)]
-
 pub struct Student{
     pub id: Uuid,
     pub dni: i64,
     pub first_name: String,
     pub last_name: String,
+    pub email: Option<String>,
     pub gender: Gender,
     pub phone: Option<i64>,
     pub address: Option<String>,
@@ -34,6 +34,8 @@ pub struct NewStudent{
     pub first_name: String,
     #[validate(length(min=3, max=20))]
     pub last_name: String,
+    #[validate(email)]
+    pub email: Option<String>,
     pub gender: Gender,
     pub phone: Option<i64>,
     #[validate(length(min=3, max=100))]
@@ -50,4 +52,20 @@ pub struct UpdateStudent{
 #[derive(FromRow, Debug, Deserialize, Serialize, Validate, JsonSchema)]
 pub struct DeleteStudent{
     pub id: Uuid
+}
+
+#[derive(FromRow, Debug, Deserialize, Serialize, Validate, JsonSchema)]
+pub struct InviteToken{
+    pub id: Uuid,
+    pub student_id: Uuid,
+    pub token: String,
+    pub expires_at: DateTime<Utc>,
+    pub used_at: Option<DateTime<Utc>>,
+    pub created_at: DateTime<Utc>
+}
+
+#[derive(FromRow, Debug, Deserialize, Serialize, Validate, JsonSchema)]
+pub struct StudentResponse{
+    pub student: Student,
+    pub token: Option<InviteToken>
 }

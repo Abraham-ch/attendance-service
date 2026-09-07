@@ -77,7 +77,7 @@ pub struct AuthResponse{
 
 #[derive(Serialize, Deserialize)]
 pub struct Claims {
-    pub sub: String,  // user id
-    pub role: Role,
+    pub id: String,  // user id
+    pub param: String,
     pub exp: usize,   // expiration timestamp
 }
