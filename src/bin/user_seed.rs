@@ -211,10 +211,8 @@ async fn main() {
         .execute(&mut *tx)
         .await
         .expect("Failed to insert users");
-
     }
 
     tx.commit().await.expect("Failed to commit transaction.");
     println!("Users seeded succesfully!")
-
 }
