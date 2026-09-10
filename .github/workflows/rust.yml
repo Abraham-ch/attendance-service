@@ -19,6 +19,8 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - run: rustup toolchain install stable --profile minimal # for cache to work
+    - name: Rust chache
+      uses: swatinem/rust-cache@v2
     - name: prepare sqlx
       run: cargo install sqlx-cli
 
