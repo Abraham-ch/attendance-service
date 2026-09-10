@@ -1,0 +1,80 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            UPDATE\n                users\n                SET\n                    first_name = COALESCE($1, first_name),\n                    last_name = COALESCE($2, last_name),\n                    email = COALESCE($3, email),\n                    password = COALESCE($4, password),\n                    avatar = COALESCE($5, avatar),\n                    role = COALESCE($6, role)\n            WHERE id = $7\n            RETURNING \n                first_name,\n                last_name,\n                email,\n                password,\n                avatar,\n                role AS \"role: Role\"\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "first_name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 1,
+        "name": "last_name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "email",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 3,
+        "name": "password",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 4,
+        "name": "avatar",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 5,
+        "name": "role: Role",
+        "type_info": {
+          "Custom": {
+            "name": "role",
+            "kind": {
+              "Enum": [
+                "super_admin",
+                "admin",
+                "user"
+              ]
+            }
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Varchar",
+        "Varchar",
+        "Varchar",
+        "Varchar",
+        "Varchar",
+        {
+          "Custom": {
+            "name": "role",
+            "kind": {
+              "Enum": [
+                "super_admin",
+                "admin",
+                "user"
+              ]
+            }
+          }
+        },
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "2dac1528a3727fcd00465d8ed810b4a014cbc9e2a1b5d62c61f85e8e79fafabc"
+}

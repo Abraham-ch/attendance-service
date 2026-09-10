@@ -82,7 +82,6 @@ cargo run --bin student_seed
 
 ## Recommendations
 
-- **CI** — a GitHub Actions workflow running `cargo check`/`cargo test` and `sqlx migrate run` against a throwaway Postgres service.
 - **Dockerfile for the app itself** — `compose.yaml` only runs Postgres; adding an `attendance-service` build stage would let the whole stack run with one `docker compose up`.
 
 ## License

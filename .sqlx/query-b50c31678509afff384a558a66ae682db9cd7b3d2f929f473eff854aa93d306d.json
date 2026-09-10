@@ -1,0 +1,37 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            UPDATE\n                representatives\n                SET\n                    first_name = COALESCE($1, first_name),\n                    last_name = COALESCE($2, last_name),\n                    phone = COALESCE($3, phone)\n            WHERE id = $4\n            RETURNING\n                first_name,\n                last_name, \n                phone\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "first_name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 1,
+        "name": "last_name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "phone",
+        "type_info": "Jsonb"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Varchar",
+        "Varchar",
+        "Jsonb",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "b50c31678509afff384a558a66ae682db9cd7b3d2f929f473eff854aa93d306d"
+}

@@ -1,0 +1,81 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            INSERT INTO student_representatives\n                (\n                    student_id,\n                    representative_id,\n                    relationship,\n                    is_primary\n                )\n            VALUES\n                ($1, $2, $3, $4)\n            RETURNING\n                student_id,\n                representative_id,\n                relationship AS \"relationship: Relationship\",\n                is_primary\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "student_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "representative_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "relationship: Relationship",
+        "type_info": {
+          "Custom": {
+            "name": "relationship",
+            "kind": {
+              "Enum": [
+                "mother",
+                "father",
+                "step_mother",
+                "step_father",
+                "grand_mother",
+                "grand_father",
+                "sibling",
+                "aunt",
+                "uncle",
+                "legal_guardian",
+                "other"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "is_primary",
+        "type_info": "Bool"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        {
+          "Custom": {
+            "name": "relationship",
+            "kind": {
+              "Enum": [
+                "mother",
+                "father",
+                "step_mother",
+                "step_father",
+                "grand_mother",
+                "grand_father",
+                "sibling",
+                "aunt",
+                "uncle",
+                "legal_guardian",
+                "other"
+              ]
+            }
+          }
+        },
+        "Bool"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "d95728774b4633f3393e637dbaafc803d7970b9c44fd8e570a3c6b079211381b"
+}
