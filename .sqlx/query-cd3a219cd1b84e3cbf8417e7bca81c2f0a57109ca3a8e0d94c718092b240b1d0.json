@@ -16,7 +16,7 @@
       {
         "ordinal": 2,
         "name": "token",
-        "type_info": "Varchar"
+        "type_info": "Text"
       },
       {
         "ordinal": 3,
@@ -38,7 +38,7 @@
       "Left": [
         "Uuid",
         "Uuid",
-        "Varchar",
+        "Text",
         "Timestamptz",
         "Timestamptz",
         "Timestamptz"

@@ -1,0 +1,38 @@
+name: attendance-service
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  DATABASE_URL: postgres://postgres:password@localhost:5432/attendance_service
+  CARGO_TERM_COLOR: always
+  SQLX_OFFLINE: true
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - run: rustup toolchain install stable --profile minimal # for cache to work
+    - name: Rust chache
+      uses: swatinem/rust-cache@v2
+    - name: prepare sqlx
+      run: cargo install sqlx-cli
+
+    - name: create database
+      run: docker compose up -d --wait
+
+    - name: create tables
+      run: sqlx migrate run
+    - name: compare database queries
+      run: cargo sqlx prepare --check
+
+    - name: Build
+      run: cargo build --verbose
+    - name: Run tests
+      run: cargo test --verbose
