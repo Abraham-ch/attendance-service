@@ -69,3 +69,9 @@ pub struct StudentResponse{
     pub student: Student,
     pub token: Option<InviteToken>
 }
+
+#[derive(Debug)]
+pub struct Receiver{
+    pub name: String,
+    pub email: String
+}

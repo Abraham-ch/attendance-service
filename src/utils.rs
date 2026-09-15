@@ -1,12 +1,14 @@
 use std::{sync::Arc, time::{SystemTime, UNIX_EPOCH}};
+use dotenvy::{dotenv, var};
 
 use argon2::{Argon2, PasswordHash, PasswordHasher, PasswordVerifier, password_hash::{SaltString, rand_core::OsRng}};
 use axum::http::StatusCode;
 use jsonwebtoken::{DecodingKey, EncodingKey, Header, Validation, decode, encode, errors::Error};
+use lettre::{Message, SmtpTransport, Transport, message::MultiPart, transport::smtp::{Error as SomeError, authentication::Credentials, response::Response}};
 use regex::Regex;
 use validator::ValidationError;
 
-use crate::schema::{app::AppState, user::Claims};
+use crate::schema::{app::AppState, student::Receiver, user::Claims};
 
 pub fn hash_password(password: &str) -> Result<String, StatusCode>{
     let salt = SaltString::generate(&mut OsRng);
@@ -68,4 +70,43 @@ pub fn validate_token(state: Arc<AppState>, token: &str) -> bool {
     );
 
     token_data.is_ok()
+}
+
+pub fn send_invite_token(receiver: Receiver, token: &str) -> Result<(), SomeError> {
+    dotenv().ok();
+
+    let subject = "This is a subject";
+    let name = var("SMTP_NAME").expect("Failed to load name");
+    let username = var("SMTP_USERNAME").expect("Failed to load username");
+    let password = var("APP_PASSWORD").expect("Failed to load password");
+    let host = var("SMTP_HOST").expect("Failed to load host");
+    let port: u16 = var("SMTP_PORT").expect("Failed to load port").parse().unwrap();
+    
+    let from = format!("{name} <{username}>");
+    let to = format!("{} <{}>", receiver.name, receiver.email); 
+
+    let message = Message::builder()
+        .from(from.parse().unwrap())
+        .to(to.parse().unwrap())
+        .subject(subject)
+        .multipart(MultiPart::alternative_plain_html(
+            String::from("Hello, there!"),
+            String::from(token),
+    )); //TODO: format the token so we send it as a link for user registration
+
+    let sender: SmtpTransport = SmtpTransport::starttls_relay(&host)?
+    .credentials(Credentials::new(
+        username.to_owned(),
+        password.to_owned(),
+    ))
+    .port(port)
+    .build();
+
+    // Send the email via remote relay
+    let response: Result<Response, SomeError> = sender.send(&message.unwrap());
+
+    match response {
+        Ok(_) => Ok(()),
+        Err(err) => Err(err)
+    }
 }

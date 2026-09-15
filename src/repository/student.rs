@@ -2,7 +2,7 @@ use chrono::{Duration, Utc};
 use sqlx::{PgPool, postgres::PgQueryResult};
 use uuid::Uuid;
 
-use crate::{schema::{app::AppState, student::{Gender, InviteToken, NewStudent, Student, StudentResponse, UpdateStudent}, user::Claims}, utils::create_token};
+use crate::{schema::{app::AppState, student::{Gender, InviteToken, NewStudent, Receiver, Student, StudentResponse, UpdateStudent}, user::Claims}, utils::{create_token, send_invite_token}};
 
 pub async fn create_one(state: AppState, new_student: NewStudent) -> Result<StudentResponse, sqlx::Error>{
     let mut tx = state.pool.begin().await?;
@@ -64,7 +64,7 @@ pub async fn create_one(state: AppState, new_student: NewStudent) -> Result<Stud
     .fetch_one(&mut *tx)
     .await?;
 
-    let invite_token = if student.email.is_some(){
+    let invite_token = if let Some(email) = student.email{
         let claim = Claims{
             id: student.id.to_string(),
             param: student.dni.to_string(),
@@ -81,6 +81,11 @@ pub async fn create_one(state: AppState, new_student: NewStudent) -> Result<Stud
             expires_at: expires_at,
             used_at: None,
             created_at: Utc::now(),
+        };
+
+        let receiver = Receiver{
+            name: student.first_name,
+            email: email
         };
 
         let create_invite_token = sqlx::query_as!(
@@ -115,6 +120,7 @@ pub async fn create_one(state: AppState, new_student: NewStudent) -> Result<Stud
         .fetch_one(&mut *tx)
         .await?;
 
+        send_invite_token(receiver, invite_token.token.as_str()).unwrap();
         Some(create_invite_token)
     } else {
         None

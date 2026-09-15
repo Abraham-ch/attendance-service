@@ -1,0 +1,2 @@
+ALTER TABLE invite_tokens
+ALTER COLUMN token TYPE TEXT;

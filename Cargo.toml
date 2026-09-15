@@ -14,6 +14,7 @@ chrono = { version = "0.4.45", features = ["serde"] }
 dotenvy = "0.15.7"
 indoc = "2.0.7"
 jsonwebtoken = { version = "11.0.0", features = ["rust_crypto"] }
+lettre = { version = "0.11.23", features = ["rustls-tls", "smtp-transport"] }
 regex = "1.13.1"
 schemars = { version = "0.9.0", features = ["chrono04", "uuid1"] }
 serde = { version = "1.0.229", features = ["derive"] }

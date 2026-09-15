@@ -25,8 +25,9 @@ pub async fn create_student(State(state): State<AppState>, Json(new_student): Js
         Ok(result) => Ok((StatusCode::CREATED, Json(result))),
         Err(sqlx::Error::Database(db_err)) if db_err.is_unique_violation() =>
         Err((StatusCode::CONFLICT, "dni already exists".to_string())),
-        Err(_) => Err((StatusCode::INTERNAL_SERVER_ERROR, "Failed to create student.".to_string()))
+        Err(some_error) => Err((StatusCode::INTERNAL_SERVER_ERROR, format!("Failed to create student for {:?}", some_error)))
     }
+    //TODO: add Err usecase for sql database errors or use the format to display the actual error instead of returning only strings like above
 }
 
 #[axum::debug_handler]
