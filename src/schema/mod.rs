@@ -1,6 +1,6 @@
-pub mod user;
 pub mod app;
-pub mod errors;
-pub mod student;
-pub mod representative;
 pub mod assistance;
+pub mod errors;
+pub mod representative;
+pub mod student;
+pub mod user;

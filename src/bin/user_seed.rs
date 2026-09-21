@@ -1,18 +1,24 @@
+use attendance_service::{
+    schema::user::{Role, User},
+    utils::hash_password,
+};
 use chrono::Utc;
 use dotenvy::var;
-use attendance_service::{schema::user::{Role, User}, utils::hash_password};
 use sqlx::{Pool, Postgres, postgres::PgPoolOptions};
 use uuid::Uuid;
 
 #[tokio::main]
 async fn main() {
     let db = var("DATABASE_URL").expect("DATABASE_URL needed");
-    let pool:Pool<Postgres> = PgPoolOptions::new()
+    let pool: Pool<Postgres> = PgPoolOptions::new()
         .connect(&db)
         .await
         .expect("Failed to connect to DB");
-    
-    let mut tx = pool.begin().await.expect("Failed to initialize transaction");
+
+    let mut tx = pool
+        .begin()
+        .await
+        .expect("Failed to initialize transaction");
 
     let users = vec![
         (
@@ -177,21 +183,21 @@ async fn main() {
         ),
     ];
 
-  for user in users {
-    let user_password: String= hash_password(user.4).unwrap();
-    let new_user = User {
-        id: Uuid::new_v4(),
-        first_name: user.0.to_string(),
-        last_name: user.1.to_string(),
-        avatar: user.2.to_string(),
-        email: user.3.to_string(),
-        password: user_password,
-        role: user.5,
-        created_at: Utc::now(),
-        updated_at: Utc::now()
-    };
-    
-    sqlx::query(
+    for user in users {
+        let user_password: String = hash_password(user.4).unwrap();
+        let new_user = User {
+            id: Uuid::new_v4(),
+            first_name: user.0.to_string(),
+            last_name: user.1.to_string(),
+            avatar: user.2.to_string(),
+            email: user.3.to_string(),
+            password: user_password,
+            role: user.5,
+            created_at: Utc::now(),
+            updated_at: Utc::now(),
+        };
+
+        sqlx::query(
         r#"
                 INSERT INTO users 
                     (id, first_name, last_name, avatar, email, password, role, created_at, updated_at) 

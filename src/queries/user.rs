@@ -1,8 +1,8 @@
-/* 
-  i just did this file to know how to use indoc and trying to refactor the query itself, 
-  but it can't be used with query_as! macro so i'll left it in case is needed for any other
-  query that wouldn't need the compile-time checking or what we expect as response.
- */
+/*
+ i just did this file to know how to use indoc and trying to refactor the query itself,
+ but it can't be used with query_as! macro so i'll left it in case is needed for any other
+ query that wouldn't need the compile-time checking or what we expect as response.
+*/
 use indoc::indoc;
 
 pub const LIST_USERS: &str = indoc! {

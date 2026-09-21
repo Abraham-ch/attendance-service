@@ -10,11 +10,11 @@ use validator::Validate;
 #[sqlx(rename_all = "snake_case")]
 pub enum Gender {
     Male,
-    Female
+    Female,
 }
 
 #[derive(FromRow, Debug, Deserialize, Serialize, Validate, JsonSchema)]
-pub struct Student{
+pub struct Student {
     pub id: Uuid,
     pub dni: i64,
     pub first_name: String,
@@ -24,54 +24,54 @@ pub struct Student{
     pub phone: Option<i64>,
     pub address: Option<String>,
     pub created_at: DateTime<Utc>,
-    pub updated_at: DateTime<Utc>
+    pub updated_at: DateTime<Utc>,
 }
 
 #[derive(FromRow, Debug, Deserialize, Serialize, Validate, JsonSchema)]
-pub struct NewStudent{
+pub struct NewStudent {
     pub dni: i64,
-    #[validate(length(min=3, max=20))]
+    #[validate(length(min = 3, max = 20))]
     pub first_name: String,
-    #[validate(length(min=3, max=20))]
+    #[validate(length(min = 3, max = 20))]
     pub last_name: String,
     #[validate(email)]
     pub email: Option<String>,
     pub gender: Gender,
     pub phone: Option<i64>,
-    #[validate(length(min=3, max=100))]
-    pub address: Option<String>  
+    #[validate(length(min = 3, max = 100))]
+    pub address: Option<String>,
 }
 
 #[derive(FromRow, Debug, Deserialize, Serialize, Validate, JsonSchema)]
-pub struct UpdateStudent{
+pub struct UpdateStudent {
     pub phone: Option<i64>,
-    #[validate(length(min=3, max=100))]
-    pub address: Option<String>
+    #[validate(length(min = 3, max = 100))]
+    pub address: Option<String>,
 }
 
 #[derive(FromRow, Debug, Deserialize, Serialize, Validate, JsonSchema)]
-pub struct DeleteStudent{
-    pub id: Uuid
+pub struct DeleteStudent {
+    pub id: Uuid,
 }
 
 #[derive(FromRow, Debug, Deserialize, Serialize, Validate, JsonSchema)]
-pub struct InviteToken{
+pub struct InviteToken {
     pub id: Uuid,
     pub student_id: Uuid,
     pub token: String,
     pub expires_at: DateTime<Utc>,
     pub used_at: Option<DateTime<Utc>>,
-    pub created_at: DateTime<Utc>
+    pub created_at: DateTime<Utc>,
 }
 
 #[derive(FromRow, Debug, Deserialize, Serialize, Validate, JsonSchema)]
-pub struct StudentResponse{
+pub struct StudentResponse {
     pub student: Student,
-    pub token: Option<InviteToken>
+    pub token: Option<InviteToken>,
 }
 
 #[derive(Debug)]
-pub struct Receiver{
+pub struct Receiver {
     pub name: String,
-    pub email: String
+    pub email: String,
 }

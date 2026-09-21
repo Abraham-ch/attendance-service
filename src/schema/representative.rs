@@ -20,61 +20,61 @@ pub enum Relationship {
     Aunt,
     Uncle,
     LegalGuardian,
-    Other
+    Other,
 }
 
 #[derive(FromRow, Debug, Deserialize, Serialize, Validate, JsonSchema)]
-pub struct Representative{
+pub struct Representative {
     pub id: Uuid,
     pub first_name: String,
     pub last_name: String,
     pub phone: Value,
     pub created_at: DateTime<Utc>,
-    pub updated_at: DateTime<Utc>    
+    pub updated_at: DateTime<Utc>,
 }
 
 #[derive(FromRow, Debug, Deserialize, Serialize, Validate, JsonSchema)]
-pub struct NewRepresentative{
-    #[validate(length(min=3, max=20))]
+pub struct NewRepresentative {
+    #[validate(length(min = 3, max = 20))]
     pub first_name: String,
-    #[validate(length(min=3, max=20))]
+    #[validate(length(min = 3, max = 20))]
     pub last_name: String,
     pub phone: Value,
 }
 
 #[derive(FromRow, Debug, Deserialize, Serialize, Validate, JsonSchema)]
-pub struct UpdateRepresentative{
-    #[validate(length(min=3, max=20))]
+pub struct UpdateRepresentative {
+    #[validate(length(min = 3, max = 20))]
     pub first_name: String,
-    #[validate(length(min=3, max=20))]
+    #[validate(length(min = 3, max = 20))]
     pub last_name: String,
     pub phone: Value,
 }
 
 #[derive(FromRow, Debug, Deserialize, Serialize, Validate, JsonSchema)]
-pub struct DeleteRepresentative{
+pub struct DeleteRepresentative {
     pub id: Uuid,
 }
 
 #[derive(Debug, Deserialize, Serialize, Validate, JsonSchema)]
-pub struct StudentRepresentatives{
+pub struct StudentRepresentatives {
     pub student_id: Uuid,
     pub representative_id: Uuid,
     pub relationship: Relationship,
-    pub is_primary: bool
+    pub is_primary: bool,
 }
 
 #[derive(Debug, Deserialize, Serialize, Validate, JsonSchema)]
-pub struct NewRepresentativeRelation{
+pub struct NewRepresentativeRelation {
     pub student_id: Uuid,
     pub relationship: Relationship,
-    pub is_primary: bool    
+    pub is_primary: bool,
 }
 
 #[derive(Debug, Deserialize, Serialize, Validate, JsonSchema)]
-pub struct RepresentativeWithRelation{
+pub struct RepresentativeWithRelation {
     pub representative: Representative,
-    pub relation: StudentRepresentatives
+    pub relation: StudentRepresentatives,
 }
 
 #[derive(Debug, Deserialize, Serialize, Validate, JsonSchema)]

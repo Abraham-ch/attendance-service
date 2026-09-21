@@ -2,27 +2,34 @@ use chrono::Utc;
 use sqlx::{PgPool, postgres::PgQueryResult};
 use uuid::Uuid;
 
-use crate::schema::representative::{NewRepresentative, NewRepresentativeRelation, Relationship, Representative, RepresentativeWithRelation, StudentRepresentatives, UpdateRepresentative};
+use crate::schema::representative::{
+    NewRepresentative, NewRepresentativeRelation, Relationship, Representative,
+    RepresentativeWithRelation, StudentRepresentatives, UpdateRepresentative,
+};
 
-pub async fn create_one_with_relation(pool: &PgPool, new_representative: NewRepresentative, representative_relation: NewRepresentativeRelation) -> Result<RepresentativeWithRelation, sqlx::Error>{
+pub async fn create_one_with_relation(
+    pool: &PgPool,
+    new_representative: NewRepresentative,
+    representative_relation: NewRepresentativeRelation,
+) -> Result<RepresentativeWithRelation, sqlx::Error> {
     let mut tx = pool.begin().await?;
 
-    let representative = Representative{
+    let representative = Representative {
         id: Uuid::new_v4(),
         first_name: new_representative.first_name,
         last_name: new_representative.last_name,
         phone: new_representative.phone,
         created_at: Utc::now(),
-        updated_at: Utc::now()
+        updated_at: Utc::now(),
     };
 
-    let relation = StudentRepresentatives{
+    let relation = StudentRepresentatives {
         student_id: representative_relation.student_id,
         representative_id: representative.id,
         relationship: representative_relation.relationship as Relationship,
-        is_primary: representative_relation.is_primary
+        is_primary: representative_relation.is_primary,
     };
-    
+
     let created_rep = sqlx::query_as!(
         Representative,
         r#"
@@ -84,12 +91,12 @@ pub async fn create_one_with_relation(pool: &PgPool, new_representative: NewRepr
     tx.commit().await?;
 
     Ok(RepresentativeWithRelation {
-    representative: created_rep,
-    relation: created_rel
+        representative: created_rep,
+        relation: created_rel,
     })
 }
 
-pub async fn find_all(pool: &PgPool) -> Result<Vec<Representative>, sqlx::Error>{
+pub async fn find_all(pool: &PgPool) -> Result<Vec<Representative>, sqlx::Error> {
     sqlx::query_as!(
         Representative,
         r#"
@@ -109,7 +116,7 @@ pub async fn find_all(pool: &PgPool) -> Result<Vec<Representative>, sqlx::Error>
 
 pub async fn get_by_id(pool: &PgPool, id: Uuid) -> Result<Representative, sqlx::Error> {
     sqlx::query_as!(
-        Representative, 
+        Representative,
         r#"
             SELECT
                 id,
@@ -127,9 +134,13 @@ pub async fn get_by_id(pool: &PgPool, id: Uuid) -> Result<Representative, sqlx::
     .await
 }
 
-pub async fn update_one(pool: &PgPool, id: Uuid, representative_to_update: UpdateRepresentative) -> Result<UpdateRepresentative, sqlx::Error> {
+pub async fn update_one(
+    pool: &PgPool,
+    id: Uuid,
+    representative_to_update: UpdateRepresentative,
+) -> Result<UpdateRepresentative, sqlx::Error> {
     sqlx::query_as!(
-        UpdateRepresentative, 
+        UpdateRepresentative,
         r#"
             UPDATE
                 representatives

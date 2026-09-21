@@ -1,4 +1,4 @@
-pub mod user;
 pub mod auth;
-pub mod student;
 pub mod representative;
+pub mod student;
+pub mod user;

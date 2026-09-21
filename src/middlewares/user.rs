@@ -1,6 +1,11 @@
 use std::sync::Arc;
 
-use axum::{extract::{Request, State}, http::StatusCode, middleware::Next, response::Response};
+use axum::{
+    extract::{Request, State},
+    http::StatusCode,
+    middleware::Next,
+    response::Response,
+};
 
 use crate::{schema::app::AppState, utils::validate_token};
 
@@ -21,6 +26,6 @@ pub async fn auth_middleware(
     if !validate_token(state, token) {
         return Err(StatusCode::UNAUTHORIZED);
     }
- 
+
     Ok(next.run(req).await)
 }

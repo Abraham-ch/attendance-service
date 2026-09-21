@@ -1,10 +1,17 @@
 use std::sync::Arc;
 
-use aide::{axum::{ApiRouter, IntoApiResponse, routing::{get, get_with}}, openapi::OpenApi, scalar::Scalar};
-use axum::{Extension, Json, response::IntoResponse};
 use crate::schema::app::AppState;
+use aide::{
+    axum::{
+        ApiRouter, IntoApiResponse,
+        routing::{get, get_with},
+    },
+    openapi::OpenApi,
+    scalar::Scalar,
+};
+use axum::{Extension, Json, response::IntoResponse};
 
-pub fn docs(state: AppState) -> ApiRouter<AppState>{
+pub fn docs(state: AppState) -> ApiRouter<AppState> {
     aide::generate::infer_responses(true);
 
     let router: ApiRouter<AppState> = ApiRouter::new()
@@ -15,7 +22,8 @@ pub fn docs(state: AppState) -> ApiRouter<AppState>{
                     .with_title("Aide Axum")
                     .axum_handler(),
                 |op| op.description("This documentation page."),
-            ))
+            ),
+        )
         .route("/private/api.json", get(serve_docs))
         .with_state(state);
 

@@ -1,8 +1,8 @@
 use anyhow::{Context, Ok};
-use attendance_service::{app, schema::{app::AppState}};
+use attendance_service::{app, schema::app::AppState};
 use dotenvy::{dotenv, var};
 
-use sqlx::{postgres::PgPoolOptions};
+use sqlx::postgres::PgPoolOptions;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -27,12 +27,16 @@ async fn main() -> anyhow::Result<()> {
 
     let appstate = AppState {
         pool,
-        secret: secret_key
+        secret: secret_key,
     };
 
-    let listener = tokio::net::TcpListener::bind(&api).await.context(format!("Failed to listen on port: {}", &api))?;
+    let listener = tokio::net::TcpListener::bind(&api)
+        .await
+        .context(format!("Failed to listen on port: {}", &api))?;
     println!("Listening on http://{}", &api);
-    axum::serve(listener, app(appstate)).await.context("Failed to serve the app")?;
+    axum::serve(listener, app(appstate))
+        .await
+        .context("Failed to serve the app")?;
 
     Ok(())
 }

@@ -1,17 +1,17 @@
-use dotenvy::var;
 use attendance_service::schema::student::{Gender, Student};
 use chrono::Utc;
+use dotenvy::var;
 use sqlx::{Pool, Postgres, postgres::PgPoolOptions};
 use uuid::Uuid;
 
 #[tokio::main]
 async fn main() {
     let db = var("DATABASE_URL").expect("Failed to load env var");
-    let pool:Pool<Postgres> = PgPoolOptions::new()
+    let pool: Pool<Postgres> = PgPoolOptions::new()
         .connect(&db)
         .await
         .expect("Failed to connect to DB");
-    
+
     let students = vec![
         (
             74283156,
@@ -375,10 +375,13 @@ async fn main() {
         ),
     ];
 
-    let mut tx = pool.begin().await.expect("Failed to initialize transaction");
-    
+    let mut tx = pool
+        .begin()
+        .await
+        .expect("Failed to initialize transaction");
+
     for student in students {
-        let new_student = Student{
+        let new_student = Student {
             id: Uuid::new_v4(),
             dni: student.0,
             first_name: student.1.to_string(),
@@ -388,7 +391,7 @@ async fn main() {
             phone: student.5,
             address: student.6.map(String::from),
             created_at: Utc::now(),
-            updated_at: Utc::now()
+            updated_at: Utc::now(),
         };
 
         let result = sqlx::query_as!(
@@ -438,7 +441,7 @@ async fn main() {
 
         match result {
             Ok(ok) => println!("{:?}", ok),
-            Err(_) => println!("Error creating student.")
+            Err(_) => println!("Error creating student."),
         }
     }
 

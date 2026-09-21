@@ -2,12 +2,24 @@ use chrono::{Duration, Utc};
 use sqlx::{PgPool, postgres::PgQueryResult};
 use uuid::Uuid;
 
-use crate::{schema::{app::AppState, student::{Gender, InviteToken, NewStudent, Receiver, Student, StudentResponse, UpdateStudent}, user::Claims}, utils::{create_token, send_invite_token}};
+use crate::{
+    schema::{
+        app::AppState,
+        student::{
+            Gender, InviteToken, NewStudent, Receiver, Student, StudentResponse, UpdateStudent,
+        },
+        user::Claims,
+    },
+    utils::{create_token, send_invite_token},
+};
 
-pub async fn create_one(state: AppState, new_student: NewStudent) -> Result<StudentResponse, sqlx::Error>{
+pub async fn create_one(
+    state: AppState,
+    new_student: NewStudent,
+) -> Result<StudentResponse, sqlx::Error> {
     let mut tx = state.pool.begin().await?;
 
-    let student = Student{
+    let student = Student {
         id: Uuid::new_v4(),
         dni: new_student.dni,
         first_name: new_student.first_name,
@@ -17,7 +29,7 @@ pub async fn create_one(state: AppState, new_student: NewStudent) -> Result<Stud
         phone: new_student.phone,
         address: new_student.address,
         created_at: Utc::now(),
-        updated_at: Utc::now()
+        updated_at: Utc::now(),
     };
 
     let insert_student = sqlx::query_as!(
@@ -64,17 +76,17 @@ pub async fn create_one(state: AppState, new_student: NewStudent) -> Result<Stud
     .fetch_one(&mut *tx)
     .await?;
 
-    let invite_token = if let Some(email) = student.email{
-        let claim = Claims{
+    let invite_token = if let Some(email) = student.email {
+        let claim = Claims {
             id: student.id.to_string(),
             param: student.dni.to_string(),
-            exp: 259200 //3 days
+            exp: 259200, //3 days
         };
 
         let new_token = create_token(claim, state).unwrap();
         let expires_at = Utc::now() + Duration::days(3);
 
-        let invite_token = InviteToken{
+        let invite_token = InviteToken {
             id: Uuid::new_v4(),
             student_id: student.id,
             token: new_token,
@@ -83,9 +95,9 @@ pub async fn create_one(state: AppState, new_student: NewStudent) -> Result<Stud
             created_at: Utc::now(),
         };
 
-        let receiver = Receiver{
+        let receiver = Receiver {
             name: student.first_name,
-            email: email
+            email: email,
         };
 
         let create_invite_token = sqlx::query_as!(
@@ -129,12 +141,12 @@ pub async fn create_one(state: AppState, new_student: NewStudent) -> Result<Stud
     tx.commit().await?;
 
     Ok(StudentResponse {
-    student: insert_student,
-    token: invite_token
+        student: insert_student,
+        token: invite_token,
     })
 }
 
-pub async fn find_all(pool: &PgPool) -> Result<Vec<Student>, sqlx::Error>{
+pub async fn find_all(pool: &PgPool) -> Result<Vec<Student>, sqlx::Error> {
     sqlx::query_as!(
         Student,
         r#"
@@ -158,7 +170,7 @@ pub async fn find_all(pool: &PgPool) -> Result<Vec<Student>, sqlx::Error>{
 
 pub async fn get_by_id(pool: &PgPool, id: Uuid) -> Result<Student, sqlx::Error> {
     sqlx::query_as!(
-        Student, 
+        Student,
         r#"
             SELECT
                 id,
@@ -180,9 +192,13 @@ pub async fn get_by_id(pool: &PgPool, id: Uuid) -> Result<Student, sqlx::Error> 
     .await
 }
 
-pub async fn update_one(pool: &PgPool, id: Uuid, student_to_update: UpdateStudent) -> Result<UpdateStudent, sqlx::Error> {
+pub async fn update_one(
+    pool: &PgPool,
+    id: Uuid,
+    student_to_update: UpdateStudent,
+) -> Result<UpdateStudent, sqlx::Error> {
     sqlx::query_as!(
-        UpdateStudent, 
+        UpdateStudent,
         r#"
             UPDATE
                 students
