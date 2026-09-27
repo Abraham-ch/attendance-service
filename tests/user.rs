@@ -7,7 +7,7 @@ mod common;
 #[tokio::test]
 async fn test_log_user() {
     let app = spawn_app().await;
-    let (email, password, _) = create_user(&app).await;
+    let (email, password, _) = create_user(&app.server).await;
 
     let response = app
         .server
@@ -23,8 +23,8 @@ async fn test_log_user() {
 
 #[tokio::test]
 async fn test_create_user() {
-    let server = spawn_app().await;
-    let (_, _, status_code) = create_user(&server).await;
+    let app = spawn_app().await;
+    let (_, _, status_code) = create_user(&app.server).await;
 
     assert_eq!(status_code, StatusCode::CREATED)
 }
