@@ -1,7 +1,9 @@
 #![allow(dead_code)]
 
 use attendance_service::schema::{
-    representative::Representative,
+    representative::{
+        Relationship, Representative, RepresentativeWithRelation, StudentRepresentatives,
+    },
     student::{Gender, Student},
     user::{AuthResponse, Role, User},
 };
@@ -48,7 +50,7 @@ pub async fn user_logged(server: &TestServer) -> String {
     auth_response.token
 }
 
-pub async fn create_student(server: &TestServer, token: String) -> TestResponse {
+pub async fn create_student(server: &TestServer, token: &String) -> TestResponse {
     let student = Student {
         id: Uuid::new_v4(),
         dni: 12345678,
@@ -66,6 +68,41 @@ pub async fn create_student(server: &TestServer, token: String) -> TestResponse 
         .post("/student")
         .authorization_bearer(token)
         .json(&student)
+        .await;
+
+    response
+}
+
+pub async fn create_representative(
+    server: &TestServer,
+    token: &String,
+    student_id: &Uuid,
+) -> TestResponse {
+    let representative = Representative {
+        id: Uuid::new_v4(),
+        first_name: "Father".to_string(),
+        last_name: "Doe".to_string(),
+        phone: serde_json::json!(vec![123456789, 987654321]),
+        created_at: Utc::now(),
+        updated_at: Utc::now(),
+    };
+
+    let representative_relation = StudentRepresentatives {
+        student_id: *student_id,
+        representative_id: representative.id,
+        is_primary: true,
+        relationship: Relationship::Father,
+    };
+
+    let representative_with_relation = RepresentativeWithRelation {
+        representative,
+        relation: representative_relation,
+    };
+
+    let response = server
+        .post("/representative")
+        .authorization_bearer(token)
+        .json(&representative_with_relation)
         .await;
 
     response

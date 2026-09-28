@@ -55,10 +55,7 @@ pub async fn create_representative(
         Err(sqlx::Error::Database(db_err)) if db_err.is_unique_violation() => {
             Err((StatusCode::CONFLICT, "dni already exists".to_string()))
         }
-        Err(_) => Err((
-            StatusCode::INTERNAL_SERVER_ERROR,
-            "Failed to create representative.".to_string(),
-        )),
+        Err(err) => Err((StatusCode::INTERNAL_SERVER_ERROR, format!("{}", err))),
     }
 }
 
@@ -115,9 +112,9 @@ pub async fn delete_representative(
             "Representative not found".to_string(),
         )),
         Ok(_) => Ok((StatusCode::OK, "Representative deleted".to_string())),
-        Err(_) => Err((
+        Err(err) => Err((
             StatusCode::INTERNAL_SERVER_ERROR,
-            "Failed to delete representative.".to_string(),
+            format!("Failed to delete representative: {:?}", err),
         )),
     }
 }

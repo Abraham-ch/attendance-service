@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            SELECT\n                id,\n                first_name,\n                last_name,\n                phone,\n                created_at,\n                updated_at\n            FROM representatives \n            WHERE id = $1\n        ",
+  "query": "\n            SELECT\n                id,\n                first_name,\n                last_name,\n                phone,\n                created_at,\n                updated_at\n            FROM representatives\n            WHERE id = $1\n        ",
   "describe": {
     "columns": [
       {
@@ -48,5 +48,5 @@
       false
     ]
   },
-  "hash": "6926984ccb04061b8e39d079cfd2db56e8437f3c891b4f31a19a8b739f89b3fa"
+  "hash": "47bc7ebbc5d60e315ba6c755fda34e7403ee860551c540d038d7197016b67205"
 }

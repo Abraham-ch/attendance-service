@@ -7,10 +7,17 @@ on:
         branches: ["main"]
 
 env:
-    DATABASE_URL: postgres://postgres:password@localhost:5432/attendance_service
+    ALLOWED_ORIGIN: ${{ secrets.ALLOWED_ORIGIN }}
+    API_URL: ${{ secrets.API_URL }}
+    APP_PASSWORD: ${{ secrets.APP_PASSWORD }}
+    DATABASE_URL: ${{ secrets.DATABASE_URL }}
+    SECRET_KEY: ${{ secrets.SECRET_KEY }}
+    SMTP_HOST: ${{ secrets.SMTP_HOST }}
+    SMTP_NAME: ${{ secrets.SMTP_NAME }}
+    SMTP_PORT: ${{ secrets.SMTP_PORT }}
+    SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
+    SQLX_OFFLINE: ${{ secrets.SQLX_OFFLINE }}
     CARGO_TERM_COLOR: always
-    SQLX_OFFLINE: true
-    ALLOWED_ORIGIN: http://localhost:5173
 
 jobs:
     build:

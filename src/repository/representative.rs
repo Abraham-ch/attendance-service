@@ -1,11 +1,10 @@
-use chrono::Utc;
-use sqlx::{PgPool, postgres::PgQueryResult};
-use uuid::Uuid;
-
 use crate::schema::representative::{
     NewRepresentative, NewRepresentativeRelation, Relationship, Representative,
     RepresentativeWithRelation, StudentRepresentatives, UpdateRepresentative,
 };
+use chrono::Utc;
+use sqlx::{PgPool, postgres::PgQueryResult};
+use uuid::Uuid;
 
 pub async fn create_one_with_relation(
     pool: &PgPool,
@@ -125,7 +124,7 @@ pub async fn get_by_id(pool: &PgPool, id: Uuid) -> Result<Representative, sqlx::
                 phone,
                 created_at,
                 updated_at
-            FROM representatives 
+            FROM representatives
             WHERE id = $1
         "#,
         id
@@ -151,7 +150,7 @@ pub async fn update_one(
             WHERE id = $4
             RETURNING
                 first_name,
-                last_name, 
+                last_name,
                 phone
         "#,
         representative_to_update.first_name,

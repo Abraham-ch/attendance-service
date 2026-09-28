@@ -7,7 +7,7 @@ use uuid::Uuid;
 use validator::Validate;
 
 #[derive(Debug, Type, Deserialize, Serialize, Clone, JsonSchema)]
-#[sqlx(type_name = "gender")]
+#[sqlx(type_name = "relationship")]
 #[sqlx(rename_all = "snake_case")]
 pub enum Relationship {
     Mother,

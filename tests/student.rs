@@ -13,7 +13,7 @@ async fn test_create_student_without_email() {
     let app = spawn_app().await;
     let token = user_logged(&app.server).await;
 
-    let response = create_student(&app.server, token).await;
+    let response = create_student(&app.server, &token).await;
     response.assert_status(StatusCode::CREATED);
 }
 
@@ -49,7 +49,7 @@ async fn test_create_student_with_email() {
 async fn test_update_student() {
     let app = spawn_app().await;
     let token = user_logged(&app.server).await;
-    let student = create_student(&app.server, token.clone()).await;
+    let student = create_student(&app.server, &token).await;
     let student_id = student.json::<StudentResponse>().student.id.to_string();
     let student_id_route = format!("/student/{}", student_id);
 
@@ -72,7 +72,7 @@ async fn test_update_student() {
 async fn test_delete_student() {
     let app = spawn_app().await;
     let token = user_logged(&app.server).await;
-    let student = create_student(&app.server, token.clone()).await;
+    let student = create_student(&app.server, &token).await;
     let student_id = student.json::<StudentResponse>().student.id.to_string();
     let student_id_route = format!("/student/{}", student_id);
 
@@ -89,7 +89,7 @@ async fn test_delete_student() {
 async fn test_get_student_by_id() {
     let app = spawn_app().await;
     let token = user_logged(&app.server).await;
-    let student = create_student(&app.server, token.clone()).await;
+    let student = create_student(&app.server, &token).await;
     let student_id = student.json::<StudentResponse>().student.id.to_string();
     let student_id_route = format!("/student/{}", student_id);
 
@@ -106,7 +106,7 @@ async fn test_get_student_by_id() {
 async fn test_list_students() {
     let app = spawn_app().await;
     let token = user_logged(&app.server).await;
-    let student = create_student(&app.server, token.clone()).await;
+    let student = create_student(&app.server, &token).await;
 
     student.assert_status(StatusCode::CREATED);
 

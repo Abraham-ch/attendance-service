@@ -1,0 +1,3 @@
+ALTER TABLE student_representatives
+DROP CONSTRAINT student_representatives_student_id_fkey,
+DROP CONSTRAINT student_representatives_representative_id_fkey;
