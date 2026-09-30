@@ -1,0 +1,4 @@
+ALTER TABLE periods
+ALTER COLUMN start_date type TIMESTAMPTZ;
+ALTER TABLE periods
+ALTER COLUMN end_date type TIMESTAMPTZ;

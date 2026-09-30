@@ -183,7 +183,7 @@ pub async fn get_by_id(pool: &PgPool, id: Uuid) -> Result<Student, sqlx::Error> 
                 address,
                 created_at,
                 updated_at
-            FROM students 
+            FROM students
             WHERE id = $1
         "#,
         id
@@ -206,7 +206,7 @@ pub async fn update_one(
                     phone = COALESCE($1, phone),
                     address = COALESCE($2, address)
             WHERE id = $3
-            RETURNING 
+            RETURNING
                 phone,
                 address
         "#,

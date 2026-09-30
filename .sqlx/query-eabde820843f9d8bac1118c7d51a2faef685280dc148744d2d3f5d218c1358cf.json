@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            UPDATE\n                students\n                SET\n                    phone = COALESCE($1, phone),\n                    address = COALESCE($2, address)\n            WHERE id = $3\n            RETURNING \n                phone,\n                address\n        ",
+  "query": "\n            UPDATE\n                students\n                SET\n                    phone = COALESCE($1, phone),\n                    address = COALESCE($2, address)\n            WHERE id = $3\n            RETURNING\n                phone,\n                address\n        ",
   "describe": {
     "columns": [
       {
@@ -26,5 +26,5 @@
       true
     ]
   },
-  "hash": "75a68b1cc5cb8aa670f8cab5c20ffe30738ed396a0846318c3034670a0f5b5c5"
+  "hash": "eabde820843f9d8bac1118c7d51a2faef685280dc148744d2d3f5d218c1358cf"
 }
