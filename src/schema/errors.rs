@@ -6,7 +6,7 @@ use uuid::Uuid;
 
 /// A default error response for most API errors.
 #[derive(Debug, Serialize, JsonSchema)]
-pub struct AppError {
+pub struct OtherError {
     /// An error message.
     pub error: String,
     /// A unique error ID.
@@ -18,7 +18,7 @@ pub struct AppError {
     pub error_details: Option<Value>,
 }
 
-impl AppError {
+impl OtherError {
     pub fn new(error: &str) -> Self {
         Self {
             error: error.to_string(),
@@ -39,7 +39,7 @@ impl AppError {
     }
 }
 
-impl IntoResponse for AppError {
+impl IntoResponse for OtherError {
     fn into_response(self) -> axum::response::Response {
         let status = self.status;
         let mut res = axum::Json(self).into_response();

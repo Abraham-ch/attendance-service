@@ -6,10 +6,9 @@ use std::{
 
 use argon2::{
     Argon2, PasswordHash, PasswordHasher, PasswordVerifier,
-    password_hash::{SaltString, rand_core::OsRng},
+    password_hash::{self, Error, SaltString, rand_core::OsRng},
 };
-use axum::http::StatusCode;
-use jsonwebtoken::{DecodingKey, EncodingKey, Header, Validation, decode, encode, errors::Error};
+use jsonwebtoken::{DecodingKey, EncodingKey, Header, Validation, decode, encode};
 use lettre::{
     Message, SmtpTransport, Transport,
     message::MultiPart,
@@ -20,24 +19,27 @@ use validator::ValidationError;
 
 use crate::schema::{app::AppState, student::Receiver, user::Claims};
 
-pub fn hash_password(password: &str) -> Result<String, StatusCode> {
+pub fn hash_password(password: &str) -> Result<String, Error> {
     let salt = SaltString::generate(&mut OsRng);
     let argon2 = Argon2::default();
 
-    argon2
+    match argon2
         .hash_password(password.as_bytes(), &salt)
         .map(|hash| hash.to_string())
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)
+        .map_err(|e| Error::from(e))
+    {
+        Ok(hash) => Ok(hash),
+        Err(e) => Err(e),
+    }
 }
 
-pub fn verify_password(password: &str, hash: &str) -> Result<bool, StatusCode> {
-    let parsed_hash = PasswordHash::new(&hash).map_err(|_| StatusCode::INTERNAL_SERVER_ERROR);
+pub fn verify_password(password: &str, hash: &str) -> Result<bool, Error> {
+    let parsed_hash = PasswordHash::new(&hash)?;
 
-    match parsed_hash {
-        Ok(ph) => Ok(Argon2::default()
-            .verify_password(password.as_bytes(), &ph)
-            .is_ok()),
-        Err(_) => Err(StatusCode::INTERNAL_SERVER_ERROR),
+    match Argon2::default().verify_password(password.as_bytes(), &parsed_hash) {
+        Ok(()) => Ok(true),
+        Err(password_hash::Error::Password) => Ok(false),
+        Err(e) => Err(e),
     }
 }
 
@@ -57,7 +59,7 @@ pub fn valid_password(password: &str) -> Result<(), ValidationError> {
     }
 }
 
-pub fn create_token(claim: Claims, state: AppState) -> Result<String, Error> {
+pub fn create_token(claim: Claims, state: AppState) -> Result<String, jsonwebtoken::errors::Error> {
     let exp = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .unwrap()

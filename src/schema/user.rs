@@ -69,7 +69,7 @@ pub struct AuthUser {
     pub password: String,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, JsonSchema)]
 pub struct AuthResponse {
     pub user: User,
     pub token: String,

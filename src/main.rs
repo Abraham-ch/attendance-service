@@ -6,6 +6,7 @@ use sqlx::postgres::PgPoolOptions;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
+    tracing_subscriber::fmt::init();
     dotenv().ok();
 
     let db = var("DATABASE_URL").context("Expected database url.")?;

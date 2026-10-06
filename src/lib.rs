@@ -36,7 +36,7 @@ use crate::{
         user::{create_user, delete_user, get_user_by_id, list_users, update_user},
     },
     middlewares::user::auth_middleware,
-    schema::{app::AppState, errors::AppError},
+    schema::{app::AppState, errors::OtherError},
 };
 
 pub mod docs;
@@ -148,8 +148,8 @@ fn api_docs(api: TransformOpenApi) -> TransformOpenApi {
                 extensions: Default::default(),
             },
         )
-        .default_response_with::<Json<AppError>, _>(|res| {
-            res.example(AppError {
+        .default_response_with::<Json<OtherError>, _>(|res| {
+            res.example(OtherError {
                 error: "some error happened".to_string(),
                 error_details: None,
                 error_id: Uuid::nil(),

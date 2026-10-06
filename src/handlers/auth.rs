@@ -1,8 +1,8 @@
-use axum::{Json, extract::State, http::StatusCode};
+use axum::{Json, extract::State};
 
 use crate::{
     schema::{
-        app::AppState,
+        app::{AppError, AppState},
         user::{AuthResponse, AuthUser, Claims, User},
     },
     utils::{create_token, verify_password},
@@ -12,24 +12,20 @@ use crate::{
 pub async fn login_user(
     State(state): State<AppState>,
     Json(user): Json<AuthUser>,
-) -> Result<(StatusCode, Json<AuthResponse>), (StatusCode, String)> {
+) -> Result<Json<AuthResponse>, AppError> {
     let log_user = match User::find_by_email(&state.pool, user.email).await {
         Ok(user) => user,
-        Err(_) => return Err((StatusCode::NOT_FOUND, "User not found".to_string())),
+        Err(_) => return Err(AppError::Unauthenticated),
     };
 
     let hash = log_user.password.as_str();
     let password = user.password.as_str();
 
-    let is_password_ok = verify_password(password, hash).map_err(|_| {
-        (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            "Failed to verify password".to_string(),
-        )
-    })?;
+    let is_password_ok =
+        verify_password(password, hash).map_err(|e| AppError::Internal(e.into()))?;
 
     if !is_password_ok {
-        return Err((StatusCode::UNAUTHORIZED, "Invalid password".to_string()));
+        return Err(AppError::Unauthenticated);
     }
 
     let claim = Claims {
@@ -38,19 +34,10 @@ pub async fn login_user(
         exp: 86400,
     };
 
-    let token = create_token(claim, state);
+    let token = create_token(claim, state)?;
 
-    match token {
-        Ok(result) => Ok((
-            StatusCode::OK,
-            Json(AuthResponse {
-                user: log_user,
-                token: result,
-            }),
-        )),
-        Err(_) => Err((
-            StatusCode::INTERNAL_SERVER_ERROR,
-            "Token couldn't be generated.".to_string(),
-        )),
-    }
+    Ok(Json(AuthResponse {
+        user: log_user,
+        token,
+    }))
 }

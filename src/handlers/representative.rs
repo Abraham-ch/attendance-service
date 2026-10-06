@@ -1,13 +1,12 @@
 use axum::{
     Json,
     extract::{Path, State},
-    http::StatusCode,
 };
 use uuid::Uuid;
 use validator::Validate;
 
 use crate::schema::{
-    app::AppState,
+    app::{AppError, AppState},
     representative::{
         CreateRepresentativeRequest, Representative, RepresentativeWithRelation,
         UpdateRepresentative,
@@ -17,57 +16,34 @@ use crate::schema::{
 #[axum::debug_handler]
 pub async fn list_representatives(
     State(state): State<AppState>,
-) -> Result<(StatusCode, Json<Vec<Representative>>), (StatusCode, String)> {
-    let full_representatives = Representative::find_all(&state.pool).await;
-
-    match full_representatives {
-        Ok(result) => Ok((StatusCode::OK, Json(result))),
-        Err(_) => Err((
-            StatusCode::NOT_FOUND,
-            "Representative not found".to_string(),
-        )),
-    }
+) -> Result<Json<Vec<Representative>>, AppError> {
+    let full_representatives = Representative::find_all(&state.pool).await?;
+    Ok(Json(full_representatives))
 }
 
 #[axum::debug_handler]
 pub async fn create_representative(
     State(state): State<AppState>,
     Json(new_representative): Json<CreateRepresentativeRequest>,
-) -> Result<(StatusCode, Json<RepresentativeWithRelation>), (StatusCode, String)> {
-    new_representative
-        .validate()
-        .map_err(|e| (StatusCode::BAD_REQUEST, e.to_string()))?;
-    let create_representative: Result<RepresentativeWithRelation, sqlx::Error> =
-        Representative::new_with_relation(
-            &state.pool,
-            new_representative.representative,
-            new_representative.relation,
-        )
-        .await;
+) -> Result<Json<RepresentativeWithRelation>, AppError> {
+    new_representative.validate()?;
+    let create_representative = Representative::new_with_relation(
+        &state.pool,
+        new_representative.representative,
+        new_representative.relation,
+    )
+    .await?;
 
-    match create_representative {
-        Ok(result) => Ok((StatusCode::CREATED, Json(result))),
-        Err(sqlx::Error::Database(db_err)) if db_err.is_unique_violation() => {
-            Err((StatusCode::CONFLICT, "dni already exists".to_string()))
-        }
-        Err(err) => Err((StatusCode::INTERNAL_SERVER_ERROR, format!("{}", err))),
-    }
+    Ok(Json(create_representative))
 }
 
 #[axum::debug_handler]
 pub async fn get_representative_by_id(
     State(state): State<AppState>,
     Path(id): Path<Uuid>,
-) -> Result<(StatusCode, Json<Representative>), (StatusCode, String)> {
-    let representative_by_id = Representative::get_by_id(&state.pool, id).await;
-
-    match representative_by_id {
-        Ok(result) => Ok((StatusCode::OK, Json(result))),
-        Err(_) => Err((
-            StatusCode::NOT_FOUND,
-            "Representative not found".to_string(),
-        )),
-    }
+) -> Result<Json<Representative>, AppError> {
+    let representative_by_id = Representative::get_by_id(&state.pool, id).await?;
+    Ok(Json(representative_by_id))
 }
 
 #[axum::debug_handler]
@@ -75,42 +51,19 @@ pub async fn update_representative(
     State(state): State<AppState>,
     Path(id): Path<Uuid>,
     Json(representative_to_update): Json<UpdateRepresentative>,
-) -> Result<(StatusCode, Json<UpdateRepresentative>), (StatusCode, String)> {
-    representative_to_update
-        .validate()
-        .map_err(|e| (StatusCode::BAD_REQUEST, e.to_string()))?;
+) -> Result<Json<UpdateRepresentative>, AppError> {
+    representative_to_update.validate()?;
     let updated_representative =
-        Representative::update(&state.pool, id, representative_to_update).await;
+        Representative::update(&state.pool, id, representative_to_update).await?;
 
-    match updated_representative {
-        Ok(result) => Ok((StatusCode::OK, Json(result))),
-        Err(sqlx::Error::RowNotFound) => Err((
-            StatusCode::NOT_FOUND,
-            "Representative not found".to_string(),
-        )),
-        Err(_) => Err((
-            StatusCode::INTERNAL_SERVER_ERROR,
-            "Failed to update representative".to_string(),
-        )),
-    }
+    Ok(Json(updated_representative))
 }
 
 #[axum::debug_handler]
 pub async fn delete_representative(
     State(state): State<AppState>,
     Path(id): Path<Uuid>,
-) -> Result<(StatusCode, String), (StatusCode, String)> {
-    let deleted_representative = Representative::delete(&state.pool, id).await;
-
-    match deleted_representative {
-        Ok(result) if result.rows_affected() == 0 => Err((
-            StatusCode::NOT_FOUND,
-            "Representative not found".to_string(),
-        )),
-        Ok(_) => Ok((StatusCode::OK, "Representative deleted".to_string())),
-        Err(err) => Err((
-            StatusCode::INTERNAL_SERVER_ERROR,
-            format!("Failed to delete representative: {:?}", err),
-        )),
-    }
+) -> Result<String, AppError> {
+    Representative::delete(&state.pool, id).await?;
+    Ok("Representative deleted".to_string())
 }
