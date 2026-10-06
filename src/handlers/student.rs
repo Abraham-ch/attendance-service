@@ -6,19 +6,16 @@ use axum::{
 use uuid::Uuid;
 use validator::Validate;
 
-use crate::{
-    repository::student::{create_one, delete_one, find_all, get_by_id, update_one},
-    schema::{
-        app::AppState,
-        student::{NewStudent, Student, StudentResponse, UpdateStudent},
-    },
+use crate::schema::{
+    app::AppState,
+    student::{NewStudent, Student, StudentResponse, UpdateStudent},
 };
 
 #[axum::debug_handler]
 pub async fn list_students(
     State(state): State<AppState>,
 ) -> Result<(StatusCode, Json<Vec<Student>>), (StatusCode, String)> {
-    let full_students = find_all(&state.pool).await;
+    let full_students = Student::find_all(&state.pool).await;
 
     match full_students {
         Ok(result) => Ok((StatusCode::OK, Json(result))),
@@ -34,7 +31,8 @@ pub async fn create_student(
     new_student
         .validate()
         .map_err(|e| (StatusCode::BAD_REQUEST, e.to_string()))?;
-    let create_student: Result<StudentResponse, sqlx::Error> = create_one(state, new_student).await;
+    let create_student: Result<StudentResponse, sqlx::Error> =
+        Student::new(state, new_student).await;
     //TODO: catch the repeated email error
     match create_student {
         Ok(result) => Ok((StatusCode::CREATED, Json(result))),
@@ -54,7 +52,7 @@ pub async fn get_student_by_id(
     State(state): State<AppState>,
     Path(id): Path<Uuid>,
 ) -> Result<(StatusCode, Json<Student>), (StatusCode, String)> {
-    let student_by_id = get_by_id(&state.pool, id).await;
+    let student_by_id = Student::get_by_id(&state.pool, id).await;
 
     match student_by_id {
         Ok(result) => Ok((StatusCode::OK, Json(result))),
@@ -71,7 +69,7 @@ pub async fn update_student(
     student_to_update
         .validate()
         .map_err(|e| (StatusCode::BAD_REQUEST, e.to_string()))?;
-    let updated_student = update_one(&state.pool, id, student_to_update).await;
+    let updated_student = Student::update(&state.pool, id, student_to_update).await;
 
     match updated_student {
         Ok(result) => Ok((StatusCode::OK, Json(result))),
@@ -93,7 +91,7 @@ pub async fn delete_student(
     State(state): State<AppState>,
     Path(id): Path<Uuid>,
 ) -> Result<(StatusCode, String), (StatusCode, String)> {
-    let deleted_student = delete_one(&state.pool, id).await;
+    let deleted_student = Student::delete(&state.pool, id).await;
 
     match deleted_student {
         Ok(result) if result.rows_affected() == 0 => {

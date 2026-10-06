@@ -6,19 +6,16 @@ use axum::{
 use uuid::Uuid;
 use validator::Validate;
 
-use crate::{
-    repository::user::{create_one, delete_one, find_all, get_by_id, update_one},
-    schema::{
-        app::AppState,
-        user::{NewUser, UpdateUser, User},
-    },
+use crate::schema::{
+    app::AppState,
+    user::{NewUser, UpdateUser, User},
 };
 
 #[axum::debug_handler]
 pub async fn list_users(
     State(state): State<AppState>,
 ) -> Result<(StatusCode, Json<Vec<User>>), (StatusCode, String)> {
-    let full_users = find_all(&state.pool).await;
+    let full_users = User::find_all(&state.pool).await;
 
     match full_users {
         Ok(result) => Ok((StatusCode::OK, Json(result))),
@@ -34,7 +31,7 @@ pub async fn create_user(
     new_user
         .validate()
         .map_err(|e| (StatusCode::BAD_REQUEST, e.to_string()))?;
-    let create_user: Result<User, sqlx::Error> = create_one(&state.pool, new_user).await;
+    let create_user: Result<User, sqlx::Error> = User::new(&state.pool, new_user).await;
 
     match create_user {
         Ok(result) => Ok((StatusCode::CREATED, Json(result))),
@@ -54,7 +51,7 @@ pub async fn get_user_by_id(
     State(state): State<AppState>,
     Path(id): Path<Uuid>,
 ) -> Result<(StatusCode, Json<User>), (StatusCode, String)> {
-    let user_by_id = get_by_id(&state.pool, id).await;
+    let user_by_id = User::get_by_id(&state.pool, id).await;
 
     match user_by_id {
         Ok(result) => Ok((StatusCode::OK, Json(result))),
@@ -71,7 +68,7 @@ pub async fn update_user(
     user_to_update
         .validate()
         .map_err(|e| (StatusCode::BAD_REQUEST, e.to_string()))?;
-    let updated_user = update_one(&state.pool, id, user_to_update).await;
+    let updated_user = User::update(&state.pool, id, user_to_update).await;
 
     match updated_user {
         Ok(result) => Ok((StatusCode::OK, Json(result))),
@@ -91,7 +88,7 @@ pub async fn delete_user(
     State(state): State<AppState>,
     Path(id): Path<Uuid>,
 ) -> Result<(StatusCode, String), (StatusCode, String)> {
-    let deleted_user = delete_one(&state.pool, id).await;
+    let deleted_user = User::delete(&state.pool, id).await;
 
     match deleted_user {
         Ok(result) if result.rows_affected() == 0 => {
