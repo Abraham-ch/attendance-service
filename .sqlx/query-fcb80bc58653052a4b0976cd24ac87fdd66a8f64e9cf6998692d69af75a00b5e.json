@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            SELECT\n                id,\n                dni,\n                first_name,\n                last_name,\n                email,\n                gender AS \"gender:Gender\",\n                phone,\n                address,\n                created_at,\n                updated_at\n            FROM students\n            WHERE id = $1\n        ",
+  "query": "\n                SELECT\n                    id,\n                    dni,\n                    first_name,\n                    last_name,\n                    email,\n                    gender AS \"gender:Gender\",\n                    phone,\n                    address,\n                    created_at,\n                    updated_at\n                FROM students\n                WHERE id = $1\n            ",
   "describe": {
     "columns": [
       {
@@ -82,5 +82,5 @@
       false
     ]
   },
-  "hash": "886002cc1b955787f41a635723596529022c5479b6c43fe9eba14796ffd1bd69"
+  "hash": "fcb80bc58653052a4b0976cd24ac87fdd66a8f64e9cf6998692d69af75a00b5e"
 }

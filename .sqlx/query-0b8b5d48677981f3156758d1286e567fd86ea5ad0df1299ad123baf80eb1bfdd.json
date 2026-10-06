@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            SELECT\n                id,\n                first_name,\n                last_name,\n                phone,\n                created_at,\n                updated_at\n            FROM representatives\n            WHERE id = $1\n        ",
+  "query": "\n                INSERT INTO representatives\n                    (\n                        id,\n                        first_name,\n                        last_name,\n                        phone,\n                        created_at,\n                        updated_at\n                    )\n                VALUES\n                    ($1, $2, $3, $4, $5, $6)\n                RETURNING\n                    id,\n                    first_name,\n                    last_name,\n                    phone,\n                    created_at,\n                    updated_at\n            ",
   "describe": {
     "columns": [
       {
@@ -36,7 +36,12 @@
     ],
     "parameters": {
       "Left": [
-        "Uuid"
+        "Uuid",
+        "Varchar",
+        "Varchar",
+        "Jsonb",
+        "Timestamptz",
+        "Timestamptz"
       ]
     },
     "nullable": [
@@ -48,5 +53,5 @@
       false
     ]
   },
-  "hash": "47bc7ebbc5d60e315ba6c755fda34e7403ee860551c540d038d7197016b67205"
+  "hash": "0b8b5d48677981f3156758d1286e567fd86ea5ad0df1299ad123baf80eb1bfdd"
 }

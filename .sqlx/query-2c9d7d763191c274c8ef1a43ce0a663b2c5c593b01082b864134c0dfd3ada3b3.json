@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            UPDATE\n                users\n                SET\n                    first_name = COALESCE($1, first_name),\n                    last_name = COALESCE($2, last_name),\n                    email = COALESCE($3, email),\n                    password = COALESCE($4, password),\n                    avatar = COALESCE($5, avatar),\n                    role = COALESCE($6, role)\n            WHERE id = $7\n            RETURNING\n                first_name,\n                last_name,\n                email,\n                password,\n                avatar,\n                role AS \"role: Role\"\n        ",
+  "query": "\n                UPDATE\n                    users\n                    SET\n                        first_name = COALESCE($1, first_name),\n                        last_name = COALESCE($2, last_name),\n                        email = COALESCE($3, email),\n                        password = COALESCE($4, password),\n                        avatar = COALESCE($5, avatar),\n                        role = COALESCE($6, role)\n                WHERE id = $7\n                RETURNING\n                    first_name,\n                    last_name,\n                    email,\n                    password,\n                    avatar,\n                    role AS \"role: Role\"\n            ",
   "describe": {
     "columns": [
       {
@@ -76,5 +76,5 @@
       false
     ]
   },
-  "hash": "272e9ac7bc6b8fde66eeaa2056b4b325af918bfab21e70ff14927a1f925eb050"
+  "hash": "2c9d7d763191c274c8ef1a43ce0a663b2c5c593b01082b864134c0dfd3ada3b3"
 }

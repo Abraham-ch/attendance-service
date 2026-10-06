@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            INSERT INTO users\n                (\n                    id,\n                    first_name,\n                    last_name,\n                    email,\n                    password,\n                    avatar,\n                    role,\n                    created_at,\n                    updated_at\n                )\n            VALUES\n                ($1, $2, $3, $4, $5, $6, $7, $8, $9)\n            RETURNING\n                id,\n                first_name,\n                last_name,\n                email,\n                avatar,\n                password,\n                role AS \"role: Role\",\n                created_at,\n                updated_at\n        ",
+  "query": "\n                SELECT\n                    id,\n                    first_name,\n                    last_name,\n                    email,\n                    password,\n                    avatar,\n                    role AS \"role: Role\",\n                    created_at,\n                    updated_at\n                FROM users\n                WHERE id = $1\n            ",
   "describe": {
     "columns": [
       {
@@ -25,12 +25,12 @@
       },
       {
         "ordinal": 4,
-        "name": "avatar",
+        "name": "password",
         "type_info": "Varchar"
       },
       {
         "ordinal": 5,
-        "name": "password",
+        "name": "avatar",
         "type_info": "Varchar"
       },
       {
@@ -62,26 +62,7 @@
     ],
     "parameters": {
       "Left": [
-        "Uuid",
-        "Varchar",
-        "Varchar",
-        "Varchar",
-        "Varchar",
-        "Varchar",
-        {
-          "Custom": {
-            "name": "role",
-            "kind": {
-              "Enum": [
-                "super_admin",
-                "admin",
-                "user"
-              ]
-            }
-          }
-        },
-        "Timestamptz",
-        "Timestamptz"
+        "Uuid"
       ]
     },
     "nullable": [
@@ -96,5 +77,5 @@
       false
     ]
   },
-  "hash": "801d6f48a967f4c642be36534ab163a39699a8ab275d623a812f11b3e15de193"
+  "hash": "9b88f8c5600265609c81daf42fd07f4ee0b906fb964ec48ca8249113c8a313de"
 }

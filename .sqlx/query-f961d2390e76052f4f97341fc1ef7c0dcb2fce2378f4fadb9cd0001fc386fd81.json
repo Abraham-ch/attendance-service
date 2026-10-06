@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            INSERT INTO student_representatives\n                (\n                    student_id,\n                    representative_id,\n                    relationship,\n                    is_primary\n                )\n            VALUES\n                ($1, $2, $3, $4)\n            RETURNING\n                student_id,\n                representative_id,\n                relationship AS \"relationship: Relationship\",\n                is_primary\n        ",
+  "query": "\n                INSERT INTO student_representatives\n                    (\n                        student_id,\n                        representative_id,\n                        relationship,\n                        is_primary\n                    )\n                VALUES\n                    ($1, $2, $3, $4)\n                RETURNING\n                    student_id,\n                    representative_id,\n                    relationship AS \"relationship: Relationship\",\n                    is_primary\n            ",
   "describe": {
     "columns": [
       {
@@ -77,5 +77,5 @@
       false
     ]
   },
-  "hash": "d95728774b4633f3393e637dbaafc803d7970b9c44fd8e570a3c6b079211381b"
+  "hash": "f961d2390e76052f4f97341fc1ef7c0dcb2fce2378f4fadb9cd0001fc386fd81"
 }
