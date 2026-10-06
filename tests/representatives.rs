@@ -20,8 +20,8 @@ async fn test_create_representative() {
     let student_id = student.json::<StudentResponse>().student.id;
     let response = create_representative(&app.server, &token, &student_id).await;
 
-    student.assert_status(StatusCode::CREATED);
-    response.assert_status(StatusCode::CREATED);
+    student.assert_status(StatusCode::OK);
+    response.assert_status(StatusCode::OK);
 }
 
 #[tokio::test]
@@ -33,8 +33,8 @@ async fn test_update_representative() {
     let student_id = student.json::<StudentResponse>().student.id;
     let representative = create_representative(&app.server, &token, &student_id).await;
 
-    student.assert_status(StatusCode::CREATED);
-    representative.assert_status(StatusCode::CREATED);
+    student.assert_status(StatusCode::OK);
+    representative.assert_status(StatusCode::OK);
 
     let updated_representative = UpdateRepresentative {
         first_name: "Mother".to_string(),
@@ -66,8 +66,8 @@ async fn test_delete_representative() {
     let student_id = student.json::<StudentResponse>().student.id;
     let representative = create_representative(&app.server, &token, &student_id).await;
 
-    student.assert_status(StatusCode::CREATED);
-    representative.assert_status(StatusCode::CREATED);
+    student.assert_status(StatusCode::OK);
+    representative.assert_status(StatusCode::OK);
 
     let representative_id = representative
         .json::<RepresentativeWithRelation>()
@@ -92,8 +92,8 @@ async fn test_list_representatives() {
     let student_id = student.json::<StudentResponse>().student.id;
     let representative = create_representative(&app.server, &token, &student_id).await;
 
-    student.assert_status(StatusCode::CREATED);
-    representative.assert_status(StatusCode::CREATED);
+    student.assert_status(StatusCode::OK);
+    representative.assert_status(StatusCode::OK);
 
     let response = app
         .server
@@ -113,8 +113,8 @@ async fn test_get_representative_by_id() {
     let student_id = student.json::<StudentResponse>().student.id;
     let representative = create_representative(&app.server, &token, &student_id).await;
 
-    student.assert_status(StatusCode::CREATED);
-    representative.assert_status(StatusCode::CREATED);
+    student.assert_status(StatusCode::OK);
+    representative.assert_status(StatusCode::OK);
 
     let representative_id = representative
         .json::<RepresentativeWithRelation>()

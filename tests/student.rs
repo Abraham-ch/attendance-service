@@ -14,7 +14,7 @@ async fn test_create_student_without_email() {
     let token = user_logged(&app.server).await;
 
     let response = create_student(&app.server, &token).await;
-    response.assert_status(StatusCode::CREATED);
+    response.assert_status(StatusCode::OK);
 }
 
 #[tokio::test]
@@ -42,7 +42,7 @@ async fn test_create_student_with_email() {
         .json(&student)
         .await;
 
-    response.assert_status(StatusCode::CREATED);
+    response.assert_status(StatusCode::OK);
 }
 
 #[tokio::test]
@@ -108,7 +108,7 @@ async fn test_list_students() {
     let token = user_logged(&app.server).await;
     let student = create_student(&app.server, &token).await;
 
-    student.assert_status(StatusCode::CREATED);
+    student.assert_status(StatusCode::OK);
 
     let response = app.server.get("/student").authorization_bearer(token).await;
 

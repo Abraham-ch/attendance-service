@@ -3,7 +3,7 @@ use std::{sync::Arc, time::Duration};
 use aide::{
     axum::{
         ApiRouter,
-        routing::{get, patch, post},
+        routing::{delete, get, patch, post},
     },
     openapi::OpenApi,
     transform::TransformOpenApi,
@@ -26,6 +26,7 @@ use crate::{
     docs::docs,
     handlers::{
         auth::login_user,
+        period::{create_period, delete_period, get_periods},
         representative::{
             create_representative, delete_representative, get_representative_by_id,
             list_representatives, update_representative,
@@ -101,6 +102,14 @@ pub fn app(appstate: AppState) -> Router {
             auth_middleware,
         ));
 
+    let period_routes = ApiRouter::new()
+        .api_route("/", get(get_periods).post(create_period))
+        .api_route("/{id}", delete(delete_period))
+        .route_layer(axum::middleware::from_fn_with_state(
+            Arc::new(appstate.clone()),
+            auth_middleware,
+        ));
+
     let admin_routes: ApiRouter<AppState> = ApiRouter::new()
         .api_route_with("/", get(list_users), |op| op.description("List all users"))
         .api_route(
@@ -121,6 +130,7 @@ pub fn app(appstate: AppState) -> Router {
         .nest("/auth", auth_route)
         .nest("/student", student_routes)
         .nest("/representative", representative_routes)
+        .nest("/period", period_routes)
         .nest("/docs", docs(appstate.clone()).into())
         .finish_api_with(&mut open_api, api_docs)
         .layer(Extension(Arc::new(open_api)))

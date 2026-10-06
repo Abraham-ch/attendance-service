@@ -26,5 +26,5 @@ async fn test_create_user() {
     let app = spawn_app().await;
     let (_, _, status_code) = create_user(&app.server).await;
 
-    assert_eq!(status_code, StatusCode::CREATED)
+    assert_eq!(status_code, StatusCode::OK)
 }

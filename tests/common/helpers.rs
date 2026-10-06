@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 
 use attendance_service::schema::{
+    period::Period,
     representative::{
         Relationship, Representative, RepresentativeWithRelation, StudentRepresentatives,
     },
@@ -103,6 +104,23 @@ pub async fn create_representative(
         .post("/representative")
         .authorization_bearer(token)
         .json(&representative_with_relation)
+        .await;
+
+    response
+}
+
+pub async fn create_period(server: &TestServer, token: &String) -> TestResponse {
+    let period = Period {
+        id: Uuid::new_v4(),
+        name: "Verano".to_string(),
+        start_date: Utc::now(),
+        end_date: Utc::now() + chrono::Duration::days(90),
+    };
+
+    let response = server
+        .post("/period")
+        .authorization_bearer(token)
+        .json(&period)
         .await;
 
     response

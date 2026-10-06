@@ -1,8 +1,12 @@
-use axum::{Json, extract::State};
+use axum::{
+    Json,
+    extract::{Path, State},
+};
+use uuid::Uuid;
 
 use crate::schema::{
     app::{AppError, AppState},
-    period::{DeletePeriod, NewPeriod, Period},
+    period::{NewPeriod, Period},
 };
 
 #[axum::debug_handler]
@@ -22,11 +26,8 @@ pub async fn get_periods(State(state): State<AppState>) -> Result<Json<Vec<Perio
 
 pub async fn delete_period(
     State(state): State<AppState>,
-    Json(period): Json<DeletePeriod>,
+    Path(id): Path<Uuid>,
 ) -> Result<String, AppError> {
-    Period::delete(&state.pool, period.id).await?;
-    Ok(format!(
-        "Period with id {:?} deleted sucsesfully.",
-        period.id
-    ))
+    Period::delete(&state.pool, id).await?;
+    Ok(format!("Period with id {:?} deleted sucsesfully.", id))
 }
