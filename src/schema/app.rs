@@ -9,11 +9,13 @@ use schemars::JsonSchema;
 use serde::Serialize;
 use serde_json::json;
 use sqlx::PgPool;
+use tokio::sync::broadcast::Sender;
 
 #[derive(Clone)]
 pub struct AppState {
     pub pool: PgPool,
     pub secret: String,
+    pub tx: Sender<String>,
 }
 
 impl FromRef<AppState> for PgPool {

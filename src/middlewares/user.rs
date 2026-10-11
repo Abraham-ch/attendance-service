@@ -1,8 +1,8 @@
-use std::sync::Arc;
+use std::{collections::HashMap, sync::Arc};
 
 use axum::{
-    extract::{Request, State},
-    http::StatusCode,
+    extract::{Query, Request, State},
+    http::{StatusCode, header},
     middleware::Next,
     response::Response,
 };
@@ -11,13 +11,17 @@ use crate::{schema::app::AppState, utils::validate_token};
 
 pub async fn auth_middleware(
     State(state): State<Arc<AppState>>,
+    Query(query): Query<HashMap<String, String>>,
     req: Request,
     next: Next,
 ) -> Result<Response, StatusCode> {
     let token = req
         .headers()
-        .get("authorization")
+        .get(header::AUTHORIZATION)
         .and_then(|v| v.to_str().ok())
+        .and_then(|v| v.strip_prefix("Bearer "))
+        .map(str::to_owned)
+        .or_else(|| query.get("token").cloned())
         .ok_or(StatusCode::UNAUTHORIZED)?;
 
     let token = token.trim_start_matches("Bearer ");

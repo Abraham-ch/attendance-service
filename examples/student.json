@@ -1,0 +1,21 @@
+{
+  "POST /student": {
+    "dni": 70123456,
+    "first_name": "Carlos",
+    "last_name": "Ramirez",
+    "email": "carlos.ramirez@example.com",
+    "gender": "Male",
+    "phone": 987654321,
+    "address": "Av. Los Proceres 123, Lima"
+  },
+  "POST /student (only required fields)": {
+    "dni": 70123457,
+    "first_name": "Maria",
+    "last_name": "Gonzales",
+    "gender": "Female"
+  },
+  "PATCH /student/{id}": {
+    "phone": 912345678,
+    "address": "Jr. Las Flores 456, Lima"
+  }
+}

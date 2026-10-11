@@ -1,3 +1,4 @@
+pub mod assistance;
 pub mod auth;
 pub mod period;
 pub mod representative;

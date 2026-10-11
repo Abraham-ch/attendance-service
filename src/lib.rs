@@ -25,6 +25,7 @@ use uuid::Uuid;
 use crate::{
     docs::docs,
     handlers::{
+        assistance::ws_handler,
         auth::login_user,
         period::{create_period, delete_period, get_periods},
         representative::{
@@ -123,6 +124,13 @@ pub fn app(appstate: AppState) -> Router {
 
     let auth_route: ApiRouter<AppState> = ApiRouter::new().api_route("/", post(login_user));
 
+    let assistance_routes: ApiRouter<AppState> = ApiRouter::new()
+        .route("/", axum::routing::get(ws_handler))
+        .route_layer(axum::middleware::from_fn_with_state(
+            Arc::new(appstate.clone()),
+            auth_middleware,
+        ));
+
     ApiRouter::new()
         .route("/", get(index))
         .nest("/user", admin_routes)
@@ -132,6 +140,7 @@ pub fn app(appstate: AppState) -> Router {
         .nest("/representative", representative_routes)
         .nest("/period", period_routes)
         .nest("/docs", docs(appstate.clone()).into())
+        .nest("/assistance", assistance_routes)
         .finish_api_with(&mut open_api, api_docs)
         .layer(Extension(Arc::new(open_api)))
         .layer(TraceLayer::new_for_http())

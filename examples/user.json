@@ -1,0 +1,21 @@
+{
+  "POST /user": {
+    "first_name": "Lucas",
+    "last_name": "Rivera",
+    "email": "lucas.rivera@example.com",
+    "password": "LucasPassword123!",
+    "avatar": "https://example.com/avatars/lucas.png",
+    "role": "Admin"
+  },
+  "PATCH /user/{id}": {
+    "first_name": "Lucas",
+    "last_name": "Rivera",
+    "email": "lucas.rivera@example.com",
+    "password": "NewPassword456!",
+    "avatar": "https://example.com/avatars/lucas-v2.png",
+    "role": "User"
+  },
+  "PATCH /user/{id} (partial)": {
+    "avatar": "https://example.com/avatars/lucas-v2.png"
+  }
+}

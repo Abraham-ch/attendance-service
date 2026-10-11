@@ -3,6 +3,7 @@ use attendance_service::{app, schema::app::AppState};
 use dotenvy::{dotenv, var};
 
 use sqlx::postgres::PgPoolOptions;
+use tokio::sync::broadcast;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -18,6 +19,8 @@ async fn main() -> anyhow::Result<()> {
         .await
         .expect("Failed to connect to database");
 
+    let (tx, _) = broadcast::channel::<String>(100);
+
     // Run migrations
     sqlx::migrate!("./migrations")
         .run(&pool)
@@ -29,6 +32,7 @@ async fn main() -> anyhow::Result<()> {
     let appstate = AppState {
         pool,
         secret: secret_key,
+        tx,
     };
 
     let listener = tokio::net::TcpListener::bind(&api)

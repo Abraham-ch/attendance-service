@@ -1,3 +1,4 @@
+pub mod assistance;
 pub mod period;
 pub mod representative;
 pub mod student;

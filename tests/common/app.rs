@@ -5,6 +5,7 @@ use testcontainers_modules::{
     postgres::{self, Postgres},
     testcontainers::{ContainerAsync, runners::AsyncRunner},
 };
+use tokio::sync::broadcast;
 
 #[derive(Debug)]
 pub struct TestApp {
@@ -17,6 +18,7 @@ pub async fn spawn_app() -> TestApp {
     let container = postgres::Postgres::default().start().await.unwrap();
     let port = container.get_host_port_ipv4(5432).await.unwrap();
     let url = format!("postgres://postgres:postgres@127.0.0.1:{port}/postgres");
+    let (tx, _) = broadcast::channel::<String>(100);
 
     let pool = PgPoolOptions::new()
         .max_connections(10)
@@ -29,6 +31,7 @@ pub async fn spawn_app() -> TestApp {
     let appstate = AppState {
         pool,
         secret: "test_secret_key".to_string(),
+        tx,
     };
 
     TestApp {

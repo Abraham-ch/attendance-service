@@ -1,0 +1,19 @@
+{
+  "POST /representative": {
+    "representative": {
+      "first_name": "Rosa",
+      "last_name": "Ramirez",
+      "phone": [987654321, 912345678]
+    },
+    "relation": {
+      "student_id": "00000000-0000-0000-0000-000000000000",
+      "relationship": "Mother",
+      "is_primary": true
+    }
+  },
+  "PATCH /representative/{id}": {
+    "first_name": "Rosa",
+    "last_name": "Ramirez",
+    "phone": [999888777]
+  }
+}
