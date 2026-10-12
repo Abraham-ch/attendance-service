@@ -1,2 +1,10 @@
-/target
+# Rust
+*target/
+
+# Node
+node_modules/
+dist/
+
+# Env
 .env
+.env.local

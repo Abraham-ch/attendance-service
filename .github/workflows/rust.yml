@@ -2,8 +2,10 @@ name: attendance-service
 
 on:
     push:
+        paths: ["api/**", ".github/workflows/api.yml"]
         branches: ["main"]
     pull_request:
+        paths: ["api/**", ".github/workflows/api.yml"]
         branches: ["main"]
 
 env:
@@ -18,6 +20,10 @@ env:
     SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
     SQLX_OFFLINE: ${{ secrets.SQLX_OFFLINE }}
     CARGO_TERM_COLOR: always
+
+defaults:
+    run:
+        working-directory: api
 
 jobs:
     build:
