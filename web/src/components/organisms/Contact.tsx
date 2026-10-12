@@ -1,3 +1,4 @@
+import { paths } from '../../paths'
 import ArrowLink from '../atoms/ArrowLink'
 import Container from '../atoms/Container'
 import Heading from '../atoms/Heading'
@@ -15,6 +16,9 @@ function Contact() {
               Still taking roll on paper?
             </Heading>
             <div className="flex flex-wrap gap-x-8 gap-y-3">
+              <ArrowLink href={paths.login} size="lead">
+                Sign in
+              </ArrowLink>
               <ArrowLink href={`${API_URL}/docs`} size="lead">
                 Read the API docs
               </ArrowLink>

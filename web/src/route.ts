@@ -1,31 +1,35 @@
 import { createBrowserRouter } from 'react-router'
 
+import DashboardLayout from './components/templates/DashboardLayout'
+import Assistance from './pages/dashboard/Assistance'
+import Overview from './pages/dashboard/Overview'
+import Periods from './pages/dashboard/Periods'
+import QrScan from './pages/dashboard/QrScan'
+import Representatives from './pages/dashboard/Representatives'
+import Students from './pages/dashboard/Students'
+import Users from './pages/dashboard/Users'
 import Landing from './pages/Landing'
+import Login from './pages/Login'
 import Placeholder from './pages/Placeholder'
+import { paths } from './paths'
 
-export const paths = {
-  home: '/',
-  login: '/auth/login',
-  dashboard: '/dashboard',
-  users: '/dashboard/user',
-  students: '/dashboard/student',
-  representatives: '/dashboard/representative',
-  periods: '/dashboard/period',
-  assistance: '/dashboard/assistance',
-  qrScan: '/dashboard/qr-scan'
-} as const
-
-// ponytail: flat list, no layout or auth guard yet. Nest the dashboard routes under a
-// layout route with a loader that checks the token once the dashboard shell exists.
+// ponytail: no auth guard yet. Add a loader on the dashboard route that checks the token
+// once the login form really signs in.
 export const router = createBrowserRouter([
   { path: paths.home, Component: Landing },
-  { path: paths.login, Component: Placeholder },
-  { path: paths.dashboard, Component: Placeholder },
-  { path: paths.users, Component: Placeholder },
-  { path: paths.students, Component: Placeholder },
-  { path: paths.representatives, Component: Placeholder },
-  { path: paths.periods, Component: Placeholder },
-  { path: paths.assistance, Component: Placeholder },
-  { path: paths.qrScan, Component: Placeholder },
+  { path: paths.login, Component: Login },
+  {
+    path: paths.dashboard,
+    Component: DashboardLayout,
+    children: [
+      { index: true, Component: Overview },
+      { path: paths.qrScan, Component: QrScan },
+      { path: paths.assistance, Component: Assistance },
+      { path: paths.students, Component: Students },
+      { path: paths.representatives, Component: Representatives },
+      { path: paths.periods, Component: Periods },
+      { path: paths.users, Component: Users }
+    ]
+  },
   { path: '*', Component: Placeholder }
 ])

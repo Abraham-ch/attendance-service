@@ -37,6 +37,17 @@
 
   --animate-drift: drift 18s ease-in-out infinite alternate;
 
+  --animate-scan: scan 2.4s ease-in-out infinite alternate;
+
+  @keyframes scan {
+    from {
+      top: 12%;
+    }
+    to {
+      top: 88%;
+    }
+  }
+
   @keyframes drift {
     from {
       transform: translate3d(-4%, -2%, 0);
