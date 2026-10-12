@@ -1,0 +1,84 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: 'Archivo', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-monospace: 'IBM Plex Mono', 'Cascadia Mono', ui-monospace, Consolas, monospace;
+
+  --color-paper: #f4f1ea;
+  --color-surface: #ebe7de;
+  --color-line: #d9d3c6;
+  --color-line-lit: #bfb8a9;
+  --color-ink: #14161a;
+  --color-mute: #4a5058;
+  --color-dim: #666c74;
+  /* brass is for display type and decoration, brass-lo passes AA on paper at small sizes */
+  --color-brass: #b36f12;
+  --color-brass-lo: #8f5408;
+  --color-steel: #4a6a7c;
+  --color-present: #2f7d4f;
+  --color-absent: #b3402e;
+
+  --text-label: 0.6875rem;
+  --text-label--line-height: 1.6;
+  --text-label--letter-spacing: 0.18em;
+
+  --text-title: clamp(1.6rem, 3.2vw, 2.5rem);
+  --text-title--line-height: 1;
+  --text-title--letter-spacing: -0.02em;
+  --text-title--font-weight: 800;
+
+  --text-display: clamp(3rem, 8.4vw, 6.6rem);
+  --text-display--line-height: 0.92;
+  --text-display--letter-spacing: -0.035em;
+  --text-display--font-weight: 800;
+
+  --spacing-edge: clamp(1.15rem, 4.5vw, 5rem);
+  --container-page: 82.5rem;
+
+  --animate-drift: drift 18s ease-in-out infinite alternate;
+
+  @keyframes drift {
+    from {
+      transform: translate3d(-4%, -2%, 0);
+    }
+    to {
+      transform: translate3d(4%, 3%, 0);
+    }
+  }
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-paper font-sans text-ink antialiased;
+  }
+
+  ::selection {
+    @apply bg-brass text-paper;
+  }
+}
+
+@utility bg-blueprint {
+  background-image:
+    linear-gradient(var(--color-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-line) 1px, transparent 1px);
+  background-size: 4rem 4rem;
+  mask-image: radial-gradient(120% 90% at 70% 10%, black, transparent 75%);
+}
+
+@utility bg-glow {
+  background-image:
+    radial-gradient(
+      40% 45% at 72% 28%,
+      color-mix(in oklab, var(--color-brass) 22%, transparent),
+      transparent
+    ),
+    radial-gradient(
+      35% 40% at 20% 70%,
+      color-mix(in oklab, var(--color-steel) 14%, transparent),
+      transparent
+    );
+}
