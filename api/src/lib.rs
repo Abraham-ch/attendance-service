@@ -35,7 +35,7 @@ use crate::{
         student::{
             create_student, delete_student, get_student_by_id, list_students, update_student,
         },
-        user::{create_user, delete_user, get_user_by_id, list_users, update_user},
+        user::{create_user, delete_user, get_me, get_user_by_id, list_users, update_user},
     },
     middlewares::user::auth_middleware,
     schema::{app::AppState, errors::OtherError},
@@ -113,6 +113,7 @@ pub fn app(appstate: AppState) -> Router {
 
     let admin_routes: ApiRouter<AppState> = ApiRouter::new()
         .api_route_with("/", get(list_users), |op| op.description("List all users"))
+        .api_route("/get-me", get(get_me))
         .api_route(
             "/{id}",
             get(get_user_by_id).patch(update_user).delete(delete_user),

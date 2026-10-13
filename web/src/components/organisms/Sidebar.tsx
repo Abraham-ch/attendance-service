@@ -1,7 +1,9 @@
-import { Link } from 'react-router'
+import { useNavigate } from 'react-router'
 
-import { currentUser } from '../../data/sample'
+import { logout } from '../../lib/auth'
 import { paths } from '../../paths'
+import type { User } from '../../types/user'
+import Button from '../atoms/Button'
 import Label from '../atoms/Label'
 import Brand from '../molecules/Brand'
 import NavItem from '../molecules/NavItem'
@@ -26,7 +28,14 @@ const groups: { title: string; items: { to: string; label: string; end?: boolean
   { title: 'Admin', items: [{ to: paths.users, label: 'Users' }] }
 ]
 
-function Sidebar() {
+function Sidebar(user: User) {
+  const navigate = useNavigate()
+
+  const handleLogout = () => {
+    logout()
+    navigate(paths.login, { replace: true })
+  }
+
   return (
     <aside className="flex shrink-0 flex-col gap-6 border-b border-line p-6 md:sticky md:top-0 md:h-svh md:w-64 md:gap-10 md:border-r md:border-b-0">
       <Brand />
@@ -43,14 +52,17 @@ function Sidebar() {
         ))}
       </nav>
       <div className="mt-auto hidden flex-col gap-1 border-t border-line pt-5 md:flex">
-        <span className="font-medium">{currentUser.name}</span>
-        <Label>{currentUser.role}</Label>
-        <Link
-          to={paths.login}
+        <span className="font-medium">
+          {user.first_name} {user.last_name}
+        </span>
+        <Label>{user.role}</Label>
+        <Button
+          variant="ghost"
+          onClick={handleLogout}
           className="mt-3 font-monospace text-label text-brass-lo uppercase transition-colors hover:text-ink"
         >
           Sign out
-        </Link>
+        </Button>
       </div>
     </aside>
   )

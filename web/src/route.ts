@@ -1,6 +1,7 @@
 import { createBrowserRouter } from 'react-router'
 
 import DashboardLayout from './components/templates/DashboardLayout'
+import { guestOnly, requireAuth } from './lib/guard'
 import Assistance from './pages/dashboard/Assistance'
 import Overview from './pages/dashboard/Overview'
 import Periods from './pages/dashboard/Periods'
@@ -17,10 +18,11 @@ import { paths } from './paths'
 // once the login form really signs in.
 export const router = createBrowserRouter([
   { path: paths.home, Component: Landing },
-  { path: paths.login, Component: Login },
+  { path: paths.login, Component: Login, loader: guestOnly },
   {
     path: paths.dashboard,
     Component: DashboardLayout,
+    loader: requireAuth,
     children: [
       { index: true, Component: Overview },
       { path: paths.qrScan, Component: QrScan },

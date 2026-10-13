@@ -79,6 +79,7 @@ pub fn create_token(claim: Claims, state: AppState) -> Result<String, jsonwebtok
     )
 }
 
+//just validate if hasn't expired and have the secret key
 pub fn validate_token(state: Arc<AppState>, token: &str) -> bool {
     let validation = Validation::default();
 
@@ -89,6 +90,18 @@ pub fn validate_token(state: Arc<AppState>, token: &str) -> bool {
     );
 
     token_data.is_ok()
+}
+
+pub fn decode_token(state: AppState, token: &str) -> Option<Claims> {
+    let validation = Validation::default();
+
+    decode::<Claims>(
+        &token,
+        &DecodingKey::from_secret(state.secret.as_ref()),
+        &validation,
+    )
+    .ok()
+    .map(|token_data| token_data.claims)
 }
 
 pub fn send_invite_token(receiver: Receiver, token: &str) -> Result<(), SomeError> {
