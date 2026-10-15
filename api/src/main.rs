@@ -27,7 +27,7 @@ async fn main() -> anyhow::Result<()> {
         .await
         .expect("Failed to run migrations");
 
-    println!("Connected on {}", &db);
+    println!("Connected to database");
 
     let appstate = AppState {
         pool,
