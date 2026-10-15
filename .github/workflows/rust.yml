@@ -2,10 +2,10 @@ name: attendance-service
 
 on:
     push:
-        paths: ["api/**", ".github/workflows/api.yml"]
+        paths: ["api/**", ".sqlx/**", "Cargo.toml", "Cargo.lock", ".github/workflows/rust.yml"]
         branches: ["main"]
     pull_request:
-        paths: ["api/**", ".github/workflows/api.yml"]
+        paths: ["api/**", ".sqlx/**", "Cargo.toml", "Cargo.lock", ".github/workflows/rust.yml"]
         branches: ["main"]
 
 env:
@@ -42,8 +42,9 @@ jobs:
 
             - name: create tables
               run: sqlx migrate run
+            # the offline cache lives in .sqlx/ at the workspace root, not in api/
             - name: compare database queries
-              run: cargo sqlx prepare --check
+              run: cargo sqlx prepare --check --workspace
 
             - name: Build
               run: cargo build --verbose
