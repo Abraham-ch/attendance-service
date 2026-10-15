@@ -3,6 +3,9 @@
 @theme {
   --font-sans: 'Archivo', 'Segoe UI', system-ui, -apple-system, sans-serif;
   --font-monospace: 'IBM Plex Mono', 'Cascadia Mono', ui-monospace, Consolas, monospace;
+  /* controls: labels, buttons, table headers. Mono on the public pages, see .dashboard */
+  --font-ui: var(--font-monospace);
+  --radius-ui: 0px;
 
   --color-paper: #f4f1ea;
   --color-surface: #ebe7de;
@@ -69,6 +72,29 @@
 
   ::selection {
     @apply bg-brass text-paper;
+  }
+}
+
+/* Dashboard controls: Inter instead of mono, soft corners. Set on DashboardLayout's root,
+   modals inherit it because they render inside that tree. */
+.dashboard {
+  --font-ui: 'Inter', var(--font-sans);
+  --radius-ui: 0.375rem;
+
+  & :is(input, select, textarea) {
+    font-family: var(--font-ui);
+  }
+
+  /* no outline ring on fields, the border darkens on focus instead */
+  & :is(input, select, textarea):focus-visible {
+    outline: none;
+  }
+
+  /* forms in modals read as sentences: no caps or wide tracking on labels and buttons */
+  & dialog .uppercase {
+    text-transform: none;
+    letter-spacing: normal;
+    font-size: var(--text-sm);
   }
 }
 

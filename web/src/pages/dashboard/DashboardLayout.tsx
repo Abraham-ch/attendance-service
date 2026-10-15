@@ -1,4 +1,4 @@
-import { Label } from '@components/ui'
+import { Toaster } from '@components/common'
 import { useAuth } from '@lib/context/AuthContext'
 import { Outlet } from 'react-router'
 
@@ -9,12 +9,12 @@ function DashboardLayout() {
   if (!user) return null
 
   return (
-    <div className="min-h-svh md:flex">
+    <div className="dashboard min-h-svh md:flex">
       <Sidebar {...user} />
       <main className="flex min-w-0 flex-1 flex-col gap-8 px-edge py-10">
-        <Label tone="brass">Sample data · not connected to the API yet</Label>
         <Outlet />
       </main>
+      <Toaster />
     </div>
   )
 }

@@ -12,9 +12,7 @@ type Props = { children: ReactNode; tone?: Tone; className?: string }
 
 function Label({ children, tone = 'dim', className = '' }: Props) {
   return (
-    <span className={`font-monospace text-label uppercase ${tones[tone]} ${className}`}>
-      {children}
-    </span>
+    <span className={`font-ui text-label uppercase ${tones[tone]} ${className}`}>{children}</span>
   )
 }
 
