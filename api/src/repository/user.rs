@@ -3,13 +3,19 @@ use sqlx::{PgPool, postgres::PgQueryResult};
 use uuid::Uuid;
 
 use crate::{
-    schema::user::{NewUser, Role, UpdateUser, User},
+    schema::{
+        pagination::{Page, PageQuery},
+        user::{InviteInfo, NewUser, Role, UpdateUser, User},
+    },
     utils::hash_password,
 };
 
 impl User {
-    pub async fn find_all(pool: &PgPool) -> Result<Vec<User>, sqlx::Error> {
-        sqlx::query_as!(
+    /// Search matches the full name or email
+    pub async fn find_page(pool: &PgPool, query: &PageQuery) -> Result<Page<User>, sqlx::Error> {
+        let pattern = query.pattern();
+
+        let users = sqlx::query_as!(
             User,
             r#"
                 SELECT
@@ -23,10 +29,33 @@ impl User {
                     created_at,
                     updated_at
                 FROM users
-            "#
+                WHERE $1::TEXT IS NULL
+                    OR (first_name || ' ' || last_name) ILIKE $1
+                    OR email ILIKE $1
+                ORDER BY last_name, first_name, id
+                LIMIT $2 OFFSET $3
+            "#,
+            pattern,
+            query.per_page(),
+            query.offset()
         )
         .fetch_all(pool)
-        .await
+        .await?;
+
+        let total = sqlx::query_scalar!(
+            r#"
+                SELECT COUNT(*) AS "total!"
+                FROM users
+                WHERE $1::TEXT IS NULL
+                    OR (first_name || ' ' || last_name) ILIKE $1
+                    OR email ILIKE $1
+            "#,
+            pattern
+        )
+        .fetch_one(pool)
+        .await?;
+
+        Ok(Page::new(users, total, query))
     }
 
     pub async fn new(pool: &PgPool, new_user: NewUser) -> Result<User, sqlx::Error> {
@@ -174,5 +203,90 @@ impl User {
         )
         .fetch_one(pool)
         .await
+    }
+
+    /// The student behind an unused, unexpired invite token
+    pub async fn find_invite(pool: &PgPool, token: &str) -> Result<InviteInfo, sqlx::Error> {
+        sqlx::query_as!(
+            InviteInfo,
+            r#"
+                SELECT s.first_name, s.last_name, s.email AS "email!"
+                FROM invite_tokens t
+                JOIN students s ON s.id = t.student_id
+                WHERE t.token = $1
+                    AND t.used_at IS NULL
+                    AND t.expires_at > NOW()
+                    AND s.email IS NOT NULL
+            "#,
+            token
+        )
+        .fetch_one(pool)
+        .await
+    }
+
+    /// Creates the student's own User account and burns the invite, in one transaction.
+    /// RowNotFound when the token is unknown, used or expired.
+    pub async fn register_from_invite(
+        pool: &PgPool,
+        token: &str,
+        password_hash: String,
+    ) -> Result<User, sqlx::Error> {
+        let mut tx = pool.begin().await?;
+
+        // FOR UPDATE: two submits of the same link can't both create an account
+        let invite = sqlx::query!(
+            r#"
+                SELECT t.id, s.id AS student_id, s.first_name, s.last_name, s.email AS "email!"
+                FROM invite_tokens t
+                JOIN students s ON s.id = t.student_id
+                WHERE t.token = $1
+                    AND t.used_at IS NULL
+                    AND t.expires_at > NOW()
+                    AND s.email IS NOT NULL
+                FOR UPDATE OF t
+            "#,
+            token
+        )
+        .fetch_one(&mut *tx)
+        .await?;
+
+        let user = sqlx::query_as!(
+            User,
+            r#"
+                INSERT INTO users
+                    (id, first_name, last_name, email, password, avatar, role, student_id, status)
+                VALUES
+                    ($1, $2, $3, $4, $5, '', $6, $7, 'active')
+                RETURNING
+                    id,
+                    first_name,
+                    last_name,
+                    email,
+                    password,
+                    avatar,
+                    role AS "role: Role",
+                    created_at,
+                    updated_at
+            "#,
+            Uuid::new_v4(),
+            invite.first_name,
+            invite.last_name,
+            invite.email,
+            password_hash,
+            Role::User as Role,
+            invite.student_id
+        )
+        .fetch_one(&mut *tx)
+        .await?;
+
+        sqlx::query!(
+            "UPDATE invite_tokens SET used_at = NOW() WHERE id = $1",
+            invite.id
+        )
+        .execute(&mut *tx)
+        .await?;
+
+        tx.commit().await?;
+        Ok(user)
     }
 }

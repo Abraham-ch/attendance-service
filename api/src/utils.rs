@@ -104,10 +104,34 @@ pub fn decode_token(state: AppState, token: &str) -> Option<Claims> {
     .map(|token_data| token_data.claims)
 }
 
+fn escape_html(text: &str) -> String {
+    text.replace('&', "&amp;")
+        .replace('<', "&lt;")
+        .replace('>', "&gt;")
+        .replace('"', "&quot;")
+}
+
+/// The register page link inside the invite email
+pub fn invite_url(web_url: &str, token: &str) -> String {
+    format!(
+        "{}/auth/register?token={token}",
+        web_url.trim_end_matches('/')
+    )
+}
+
+pub fn invite_html(name: &str, url: &str) -> String {
+    include_str!("../templates/invite.html")
+        .replace("{{name}}", &escape_html(name))
+        .replace("{{url}}", &escape_html(url))
+}
+
 pub fn send_invite_token(receiver: Receiver, token: &str) -> Result<(), SomeError> {
     dotenv().ok();
 
-    let subject = "This is a subject";
+    let subject = "Activate your attendance account";
+    // the web app's origin, already configured for CORS
+    let web_url = var("ALLOWED_ORIGIN").expect("Failed to load web url");
+    let url = invite_url(&web_url, token);
     let name = var("SMTP_NAME").expect("Failed to load name");
     let username = var("SMTP_USERNAME").expect("Failed to load username");
     let password = var("APP_PASSWORD").expect("Failed to load password");
@@ -125,9 +149,16 @@ pub fn send_invite_token(receiver: Receiver, token: &str) -> Result<(), SomeErro
         .to(to.parse().unwrap())
         .subject(subject)
         .multipart(MultiPart::alternative_plain_html(
-            String::from("Hello, there!"),
-            String::from(token),
-        )); //TODO: format the token so we send it as a link for user registration
+            format!(
+                "Hi {},
+                Your school registered you in the attendance system.
+                Activate your account here (the link works once and expires in 3 days):
+                {url}
+                ",
+                receiver.name
+            ),
+            invite_html(&receiver.name, &url),
+        ));
 
     let sender: SmtpTransport = SmtpTransport::starttls_relay(&host)?
         .credentials(Credentials::new(username.to_owned(), password.to_owned()))
@@ -140,5 +171,21 @@ pub fn send_invite_token(receiver: Receiver, token: &str) -> Result<(), SomeErro
     match response {
         Ok(_) => Ok(()),
         Err(err) => Err(err),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn invite_email_links_to_register_page_and_escapes_name() {
+        let url = invite_url("http://localhost:5173/", "abc.def-ghi");
+        assert_eq!(url, "http://localhost:5173/auth/register?token=abc.def-ghi");
+
+        let html = invite_html("<b>Ana</b>", &url);
+        assert!(html.contains("&lt;b&gt;Ana&lt;/b&gt;"));
+        assert!(html.contains(r#"href="http://localhost:5173/auth/register?token=abc.def-ghi""#));
+        assert!(!html.contains("{{"));
     }
 }

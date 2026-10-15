@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Activate your account</title>
+  </head>
+  <!-- Email clients ignore <style> and modern CSS: inline styles and tables only -->
+  <body style="margin:0;padding:0;background:#f4f1ea;font-family:Arial,Helvetica,sans-serif;color:#14161a;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f1ea;">
+      <tr>
+        <td align="center" style="padding:40px 16px;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#ebe7de;border:1px solid #d9d3c6;">
+            <tr>
+              <td style="padding:28px 32px 0;font-family:'Courier New',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#8f5408;">
+                Attendance · Invitation
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:12px 32px 0;font-size:26px;font-weight:800;line-height:1.15;text-transform:uppercase;">
+                Hi {{name}}, your account is ready
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:16px 32px 0;font-size:15px;line-height:1.6;color:#4a5058;">
+                Your school registered you in the attendance system. Choose a password to activate your account and follow your attendance online.
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:28px 32px;">
+                <a href="{{url}}" style="display:inline-block;background:#14161a;color:#f4f1ea;text-decoration:none;font-family:'Courier New',monospace;font-size:12px;letter-spacing:2px;text-transform:uppercase;padding:14px 24px;">
+                  Activate account
+                </a>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:0 32px 28px;font-size:13px;line-height:1.6;color:#666c74;">
+                The link works once and expires in 3 days. If the button doesn't work, paste this address in your browser:<br />
+                <a href="{{url}}" style="color:#8f5408;word-break:break-all;">{{url}}</a>
+              </td>
+            </tr>
+          </table>
+          <p style="max-width:520px;margin:16px auto 0;font-size:12px;color:#666c74;">
+            You got this email because your school added this address to your student record. If you weren't expecting it, you can ignore it.
+          </p>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

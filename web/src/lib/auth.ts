@@ -10,6 +10,14 @@ export const login = async (data: LoginData): Promise<AuthResponse> => {
   return response.data
 }
 
+// Uses the invite token from the email, the API answers like a login
+export const register = async (token: string, password: string): Promise<AuthResponse> => {
+  const response = await api.post<AuthResponse>('/auth/register', { token, password })
+
+  localStorage.setItem('token', response.data.token)
+  return response.data
+}
+
 export function logout() {
   localStorage.removeItem('token')
 }

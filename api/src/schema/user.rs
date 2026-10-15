@@ -16,6 +16,7 @@ pub struct NewUser {
     pub email: String,
     #[validate(length(min = 10, max = 20), custom(function = "valid_password"))]
     pub password: String,
+    #[serde(default)]
     pub avatar: String,
     pub role: Role,
 }
@@ -40,6 +41,8 @@ pub struct User {
     pub first_name: String,
     pub last_name: String,
     pub email: String,
+    /// argon2 hash, never sent to clients
+    #[serde(skip_serializing, default)]
     pub password: String,
     pub avatar: String,
     pub role: Role,
@@ -52,13 +55,28 @@ pub struct DeleteUser {
     pub id: Uuid,
 }
 
-#[derive(Debug, Type, Deserialize, Serialize, Clone, JsonSchema)]
+#[derive(Debug, Type, Deserialize, Serialize, Clone, PartialEq, JsonSchema)]
 #[sqlx(type_name = "role")]
 #[sqlx(rename_all = "snake_case")]
 pub enum Role {
     SuperAdmin, //me
     Admin,      // teachers or instructors
     User,       // students or representatives
+}
+
+impl Role {
+    pub fn is_admin(&self) -> bool {
+        matches!(self, Role::Admin | Role::SuperAdmin)
+    }
+
+    /// Admins create plain users, only the SuperAdmin creates admins, nobody creates a SuperAdmin
+    pub fn can_create(&self, new_role: &Role) -> bool {
+        match new_role {
+            Role::User => self.is_admin(),
+            Role::Admin => *self == Role::SuperAdmin,
+            Role::SuperAdmin => false,
+        }
+    }
 }
 
 #[derive(Debug, Deserialize, Serialize, Validate, JsonSchema)]
@@ -75,9 +93,37 @@ pub struct AuthResponse {
     pub token: String,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct Claims {
     pub id: String, // user id
     pub param: String,
     pub exp: usize, // expiration timestamp
+}
+
+impl Claims {
+    /// Login tokens carry the role in `param` (see login_user), invite tokens carry a DNI
+    pub fn role(&self) -> Option<Role> {
+        serde_json::from_value(serde_json::Value::String(self.param.clone())).ok()
+    }
+}
+
+/// Body of POST /auth/register: the invite token from the email and the new password
+#[derive(Debug, Deserialize, Serialize, Validate, JsonSchema)]
+pub struct RegisterUser {
+    pub token: String,
+    #[validate(length(min = 10, max = 20), custom(function = "valid_password"))]
+    pub password: String,
+}
+
+/// What the register page shows about the student before they pick a password
+#[derive(Debug, Deserialize, Serialize, JsonSchema)]
+pub struct InviteInfo {
+    pub first_name: String,
+    pub last_name: String,
+    pub email: String,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
+pub struct InviteQuery {
+    pub token: String,
 }

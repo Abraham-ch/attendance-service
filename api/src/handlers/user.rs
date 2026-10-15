@@ -1,6 +1,6 @@
 use axum::{
-    Json,
-    extract::{Path, State},
+    Extension, Json,
+    extract::{Path, Query, State},
     http::{HeaderMap, header::AUTHORIZATION},
 };
 use uuid::Uuid;
@@ -9,22 +9,33 @@ use validator::Validate;
 use crate::{
     schema::{
         app::{AppError, AppState},
-        user::{NewUser, UpdateUser, User},
+        pagination::{Page, PageQuery},
+        user::{Claims, NewUser, UpdateUser, User},
     },
     utils::decode_token,
 };
 
 #[axum::debug_handler]
-pub async fn list_users(State(state): State<AppState>) -> Result<Json<Vec<User>>, AppError> {
-    let full_users = User::find_all(&state.pool).await?;
-    Ok(Json(full_users))
+pub async fn list_users(
+    State(state): State<AppState>,
+    Query(query): Query<PageQuery>,
+) -> Result<Json<Page<User>>, AppError> {
+    let users = User::find_page(&state.pool, &query).await?;
+    Ok(Json(users))
 }
 
 #[axum::debug_handler]
 pub async fn create_user(
     State(state): State<AppState>,
+    Extension(claims): Extension<Claims>,
     Json(new_user): Json<NewUser>,
 ) -> Result<Json<User>, AppError> {
+    let allowed = claims
+        .role()
+        .is_some_and(|role| role.can_create(&new_user.role));
+    if !allowed {
+        return Err(AppError::Forbidden);
+    }
     new_user.validate()?;
     let create_user = User::new(&state.pool, new_user).await?;
     Ok(Json(create_user))
