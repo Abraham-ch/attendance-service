@@ -1,0 +1,88 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                SELECT\n                    id,\n                    dni,\n                    first_name,\n                    last_name,\n                    email,\n                    gender AS \"gender:Gender\",\n                    phone,\n                    address,\n                    created_at,\n                    updated_at\n                FROM students\n                WHERE $1::TEXT IS NULL\n                    OR (first_name || ' ' || last_name) ILIKE $1\n                    OR email ILIKE $1\n                    OR dni::TEXT ILIKE $1\n                ORDER BY last_name, first_name, id\n                LIMIT $2 OFFSET $3\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "dni",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 2,
+        "name": "first_name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 3,
+        "name": "last_name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 4,
+        "name": "email",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 5,
+        "name": "gender:Gender",
+        "type_info": {
+          "Custom": {
+            "name": "gender",
+            "kind": {
+              "Enum": [
+                "male",
+                "female"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "phone",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 7,
+        "name": "address",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 8,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 9,
+        "name": "updated_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Int8",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      true,
+      false,
+      true,
+      true,
+      false,
+      false
+    ]
+  },
+  "hash": "66a8b9113f6ba9279c40a3b62fc9b9e86421c3f05682f9cb3b61c6fd0067b733"
+}

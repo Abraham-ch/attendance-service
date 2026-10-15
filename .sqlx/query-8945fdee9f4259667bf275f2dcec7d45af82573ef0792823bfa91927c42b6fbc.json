@@ -1,0 +1,98 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                INSERT INTO users\n                    (id, first_name, last_name, email, password, avatar, role, student_id, status)\n                VALUES\n                    ($1, $2, $3, $4, $5, '', $6, $7, 'active')\n                RETURNING\n                    id,\n                    first_name,\n                    last_name,\n                    email,\n                    password,\n                    avatar,\n                    role AS \"role: Role\",\n                    created_at,\n                    updated_at\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "first_name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "last_name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 3,
+        "name": "email",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 4,
+        "name": "password",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 5,
+        "name": "avatar",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 6,
+        "name": "role: Role",
+        "type_info": {
+          "Custom": {
+            "name": "role",
+            "kind": {
+              "Enum": [
+                "super_admin",
+                "admin",
+                "user"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 7,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 8,
+        "name": "updated_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Varchar",
+        "Varchar",
+        "Varchar",
+        "Varchar",
+        {
+          "Custom": {
+            "name": "role",
+            "kind": {
+              "Enum": [
+                "super_admin",
+                "admin",
+                "user"
+              ]
+            }
+          }
+        },
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "8945fdee9f4259667bf275f2dcec7d45af82573ef0792823bfa91927c42b6fbc"
+}
