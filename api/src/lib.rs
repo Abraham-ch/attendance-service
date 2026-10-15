@@ -25,8 +25,8 @@ use uuid::Uuid;
 use crate::{
     docs::docs,
     handlers::{
-        assistance::ws_handler,
-        auth::login_user,
+        assistance::{get_period_assistances, ws_handler},
+        auth::{get_invite, login_user, register_user},
         period::{create_period, delete_period, get_periods},
         representative::{
             create_representative, delete_representative, get_representative_by_id,
@@ -37,7 +37,7 @@ use crate::{
         },
         user::{create_user, delete_user, get_me, get_user_by_id, list_users, update_user},
     },
-    middlewares::user::auth_middleware,
+    middlewares::user::{admin_only, auth_middleware},
     schema::{app::AppState, errors::OtherError},
 };
 
@@ -75,16 +75,16 @@ pub fn app(appstate: AppState) -> Router {
 
     let mut open_api = OpenApi::default();
 
-    let user_routes = ApiRouter::new().api_route("/", post(create_user));
+    // writes are for Admin/SuperAdmin only, every other logged-in user can read
+    let student_admin_routes = ApiRouter::new()
+        .api_route("/", post(create_student))
+        .api_route("/{id}", patch(update_student).delete(delete_student))
+        .route_layer(axum::middleware::from_fn(admin_only));
 
     let student_routes = ApiRouter::new()
-        .api_route("/", get(list_students).post(create_student))
-        .api_route(
-            "/{id}",
-            patch(update_student)
-                .get(get_student_by_id)
-                .delete(delete_student),
-        )
+        .api_route("/", get(list_students))
+        .api_route("/{id}", get(get_student_by_id))
+        .merge(student_admin_routes)
         .route_layer(axum::middleware::from_fn_with_state(
             Arc::new(appstate.clone()),
             auth_middleware,
@@ -106,24 +106,35 @@ pub fn app(appstate: AppState) -> Router {
     let period_routes = ApiRouter::new()
         .api_route("/", get(get_periods).post(create_period))
         .api_route("/{id}", delete(delete_period))
+        .api_route("/{id}/assistance", get(get_period_assistances))
         .route_layer(axum::middleware::from_fn_with_state(
             Arc::new(appstate.clone()),
             auth_middleware,
         ));
 
-    let admin_routes: ApiRouter<AppState> = ApiRouter::new()
-        .api_route_with("/", get(list_users), |op| op.description("List all users"))
-        .api_route("/get-me", get(get_me))
+    // managing accounts is for Admin/SuperAdmin, create_user also checks which roles they may give
+    let user_admin_routes = ApiRouter::new()
+        .api_route_with("/", get(list_users).post(create_user), |op| {
+            op.description("List or create users")
+        })
         .api_route(
             "/{id}",
             get(get_user_by_id).patch(update_user).delete(delete_user),
         )
+        .route_layer(axum::middleware::from_fn(admin_only));
+
+    let user_routes: ApiRouter<AppState> = ApiRouter::new()
+        .api_route("/get-me", get(get_me))
+        .merge(user_admin_routes)
         .route_layer(axum::middleware::from_fn_with_state(
             Arc::new(appstate.clone()),
             auth_middleware,
         ));
 
-    let auth_route: ApiRouter<AppState> = ApiRouter::new().api_route("/", post(login_user));
+    let auth_route: ApiRouter<AppState> = ApiRouter::new()
+        .api_route("/", post(login_user))
+        .api_route("/invite", get(get_invite))
+        .api_route("/register", post(register_user));
 
     let assistance_routes: ApiRouter<AppState> = ApiRouter::new()
         .route("/", axum::routing::get(ws_handler))
@@ -134,7 +145,6 @@ pub fn app(appstate: AppState) -> Router {
 
     ApiRouter::new()
         .route("/", get(index))
-        .nest("/user", admin_routes)
         .nest("/user", user_routes)
         .nest("/auth", auth_route)
         .nest("/student", student_routes)

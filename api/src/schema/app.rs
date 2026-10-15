@@ -36,6 +36,8 @@ pub enum AppError {
     Forbidden,
     #[error("El registro ya existe")]
     Conflict,
+    #[error("El registro está en uso por otros registros")]
+    InUse,
     #[error("Error interno")]
     Internal(#[source] anyhow::Error),
 }
@@ -45,6 +47,7 @@ impl From<sqlx::Error> for AppError {
         match &err {
             sqlx::Error::RowNotFound => AppError::NotFound,
             sqlx::Error::Database(e) if e.is_unique_violation() => AppError::Conflict,
+            sqlx::Error::Database(e) if e.is_foreign_key_violation() => AppError::InUse,
             _ => AppError::Internal(err.into()),
         }
     }
@@ -63,7 +66,7 @@ impl IntoResponse for AppError {
             AppError::Validation(_) => StatusCode::UNPROCESSABLE_ENTITY,
             AppError::Unauthenticated => StatusCode::UNAUTHORIZED,
             AppError::Forbidden => StatusCode::FORBIDDEN,
-            AppError::Conflict => StatusCode::CONFLICT,
+            AppError::Conflict | AppError::InUse => StatusCode::CONFLICT,
             AppError::Internal(_) => StatusCode::INTERNAL_SERVER_ERROR,
         };
 

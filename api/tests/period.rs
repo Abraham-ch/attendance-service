@@ -10,7 +10,7 @@ mod common;
 #[tokio::test]
 async fn test_create_period() {
     let app = spawn_app().await;
-    let token = user_logged(&app.server).await;
+    let token = user_logged(&app).await;
 
     let response = create_period(&app.server, &token).await;
     response.assert_status_success();
@@ -19,7 +19,7 @@ async fn test_create_period() {
 #[tokio::test]
 async fn test_delete_period() {
     let app = spawn_app().await;
-    let token = user_logged(&app.server).await;
+    let token = user_logged(&app).await;
     let new_period = create_period(&app.server, &token).await;
     new_period.assert_status_success();
 
@@ -35,7 +35,7 @@ async fn test_delete_period() {
 #[tokio::test]
 async fn test_get_periods() {
     let app = spawn_app().await;
-    let token = user_logged(&app.server).await;
+    let token = user_logged(&app).await;
 
     let new_period = create_period(&app.server, &token).await;
     new_period.assert_status_success();

@@ -1,6 +1,6 @@
 use attendance_service::{app, schema::app::AppState};
 use axum_test::TestServer;
-use sqlx::postgres::PgPoolOptions;
+use sqlx::{PgPool, postgres::PgPoolOptions};
 use testcontainers_modules::{
     postgres::{self, Postgres},
     testcontainers::{ContainerAsync, runners::AsyncRunner},
@@ -10,6 +10,7 @@ use tokio::sync::broadcast;
 #[derive(Debug)]
 pub struct TestApp {
     pub server: TestServer,
+    pub pool: PgPool,
     _container: ContainerAsync<Postgres>,
 }
 
@@ -35,6 +36,7 @@ pub async fn spawn_app() -> TestApp {
     };
 
     TestApp {
+        pool: appstate.pool.clone(),
         server: TestServer::new(app(appstate)),
         _container: container,
     }

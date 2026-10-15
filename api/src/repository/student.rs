@@ -5,6 +5,7 @@ use uuid::Uuid;
 use crate::{
     schema::{
         app::AppState,
+        pagination::{Page, PageQuery},
         student::{
             Gender, InviteToken, NewStudent, Receiver, Student, StudentResponse, UpdateStudent,
         },
@@ -147,8 +148,11 @@ impl Student {
         })
     }
 
-    pub async fn find_all(pool: &PgPool) -> Result<Vec<Student>, sqlx::Error> {
-        sqlx::query_as!(
+    /// Search matches the full name, email or DNI
+    pub async fn find_page(pool: &PgPool, query: &PageQuery) -> Result<Page<Student>, sqlx::Error> {
+        let pattern = query.pattern();
+
+        let students = sqlx::query_as!(
             Student,
             r#"
                 SELECT
@@ -163,10 +167,35 @@ impl Student {
                     created_at,
                     updated_at
                 FROM students
-            "#
+                WHERE $1::TEXT IS NULL
+                    OR (first_name || ' ' || last_name) ILIKE $1
+                    OR email ILIKE $1
+                    OR dni::TEXT ILIKE $1
+                ORDER BY last_name, first_name, id
+                LIMIT $2 OFFSET $3
+            "#,
+            pattern,
+            query.per_page(),
+            query.offset()
         )
         .fetch_all(pool)
-        .await
+        .await?;
+
+        let total = sqlx::query_scalar!(
+            r#"
+                SELECT COUNT(*) AS "total!"
+                FROM students
+                WHERE $1::TEXT IS NULL
+                    OR (first_name || ' ' || last_name) ILIKE $1
+                    OR email ILIKE $1
+                    OR dni::TEXT ILIKE $1
+            "#,
+            pattern
+        )
+        .fetch_one(pool)
+        .await?;
+
+        Ok(Page::new(students, total, query))
     }
 
     pub async fn get_by_id(pool: &PgPool, id: Uuid) -> Result<Student, sqlx::Error> {

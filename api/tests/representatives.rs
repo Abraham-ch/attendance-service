@@ -6,7 +6,7 @@ use axum::http::StatusCode;
 
 use crate::common::{
     app::spawn_app,
-    helpers::{create_representative, create_student, user_logged},
+    helpers::{admin_logged, create_representative, create_student},
 };
 
 mod common;
@@ -14,7 +14,7 @@ mod common;
 #[tokio::test]
 async fn test_create_representative() {
     let app = spawn_app().await;
-    let token = user_logged(&app.server).await;
+    let token = admin_logged(&app).await;
 
     let student = create_student(&app.server, &token).await;
     let student_id = student.json::<StudentResponse>().student.id;
@@ -27,7 +27,7 @@ async fn test_create_representative() {
 #[tokio::test]
 async fn test_update_representative() {
     let app = spawn_app().await;
-    let token = user_logged(&app.server).await;
+    let token = admin_logged(&app).await;
 
     let student = create_student(&app.server, &token).await;
     let student_id = student.json::<StudentResponse>().student.id;
@@ -60,7 +60,7 @@ async fn test_update_representative() {
 #[tokio::test]
 async fn test_delete_representative() {
     let app = spawn_app().await;
-    let token = user_logged(&app.server).await;
+    let token = admin_logged(&app).await;
 
     let student = create_student(&app.server, &token).await;
     let student_id = student.json::<StudentResponse>().student.id;
@@ -86,7 +86,7 @@ async fn test_delete_representative() {
 #[tokio::test]
 async fn test_list_representatives() {
     let app = spawn_app().await;
-    let token = user_logged(&app.server).await;
+    let token = admin_logged(&app).await;
 
     let student = create_student(&app.server, &token).await;
     let student_id = student.json::<StudentResponse>().student.id;
@@ -107,7 +107,7 @@ async fn test_list_representatives() {
 #[tokio::test]
 async fn test_get_representative_by_id() {
     let app = spawn_app().await;
-    let token = user_logged(&app.server).await;
+    let token = admin_logged(&app).await;
 
     let student = create_student(&app.server, &token).await;
     let student_id = student.json::<StudentResponse>().student.id;

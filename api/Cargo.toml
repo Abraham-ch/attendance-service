@@ -6,7 +6,7 @@ license = "MIT"
 default-run = "attendance-service"
 
 [dependencies]
-aide = { version = "0.15.1", features = ["axum-json", "macros", "scalar"] }
+aide = { version = "0.15.1", features = ["axum-json", "axum-query", "macros", "scalar"] }
 anyhow = "1.0.104"
 argon2 = { version = "0.5.3", features = ["std"] }
 axum = { version = "0.8.9", features = ["macros", "ws"] }

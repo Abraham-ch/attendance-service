@@ -1,19 +1,23 @@
 use axum::{
     Json,
-    extract::{Path, State},
+    extract::{Path, Query, State},
 };
 use uuid::Uuid;
 use validator::Validate;
 
 use crate::schema::{
     app::{AppError, AppState},
+    pagination::{Page, PageQuery},
     student::{NewStudent, Student, StudentResponse, UpdateStudent},
 };
 
 #[axum::debug_handler]
-pub async fn list_students(State(state): State<AppState>) -> Result<Json<Vec<Student>>, AppError> {
-    let full_students = Student::find_all(&state.pool).await?;
-    Ok(Json(full_students))
+pub async fn list_students(
+    State(state): State<AppState>,
+    Query(query): Query<PageQuery>,
+) -> Result<Json<Page<Student>>, AppError> {
+    let students = Student::find_page(&state.pool, &query).await?;
+    Ok(Json(students))
 }
 
 #[axum::debug_handler]

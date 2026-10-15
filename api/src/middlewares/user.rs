@@ -7,12 +7,17 @@ use axum::{
     response::Response,
 };
 
-use crate::{schema::app::AppState, utils::validate_token};
+use crate::{
+    schema::{app::AppState, user::Claims},
+    utils::decode_token,
+};
 
+/// Rejects requests without a valid token and stores its `Claims` on the request
+/// so later layers and handlers can read who is calling.
 pub async fn auth_middleware(
     State(state): State<Arc<AppState>>,
     Query(query): Query<HashMap<String, String>>,
-    req: Request,
+    mut req: Request,
     next: Next,
 ) -> Result<Response, StatusCode> {
     let token = req
@@ -26,10 +31,20 @@ pub async fn auth_middleware(
 
     let token = token.trim_start_matches("Bearer ");
 
-    // Validate token against your state
-    if !validate_token(state, token) {
-        return Err(StatusCode::UNAUTHORIZED);
-    }
+    let claims = decode_token(state.as_ref().clone(), token).ok_or(StatusCode::UNAUTHORIZED)?;
+    req.extensions_mut().insert(claims);
 
     Ok(next.run(req).await)
+}
+
+/// Only Admin and SuperAdmin get through. Layer it on a route group after `auth_middleware`:
+/// `.route_layer(from_fn(admin_only))` then `.route_layer(from_fn_with_state(.., auth_middleware))`
+pub async fn admin_only(req: Request, next: Next) -> Result<Response, StatusCode> {
+    let Some(claims) = req.extensions().get::<Claims>() else {
+        return Err(StatusCode::UNAUTHORIZED);
+    };
+    match claims.role() {
+        Some(role) if role.is_admin() => Ok(next.run(req).await),
+        _ => Err(StatusCode::FORBIDDEN),
+    }
 }

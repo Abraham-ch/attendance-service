@@ -6,39 +6,49 @@ use attendance_service::schema::{
         Relationship, Representative, RepresentativeWithRelation, StudentRepresentatives,
     },
     student::{Gender, Student},
-    user::{AuthResponse, Role, User},
+    user::{AuthResponse, NewUser, Role, User},
 };
-use axum::http::StatusCode;
 use axum_test::{TestResponse, TestServer};
+
+use super::app::TestApp;
 use chrono::Utc;
 use uuid::Uuid;
 
-pub async fn create_user(server: &TestServer) -> (String, String, StatusCode) {
-    let email = "john.doe@example.com".to_string();
-    let password = "JohnPassword123!".to_string();
-
-    let user_data = serde_json::json!({
-        "id": Uuid::new_v4(),
-        "first_name": "John",
-        "last_name": "Doe",
-        "email": email,
-        "password": password,
-        "avatar": "https://images.unsplash.com/photo-1701615004837-40d8573b6652?q=80&w=1160&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-        "role": Role::User,
-        "created_at": Utc::now(),
-        "updated_at": Utc::now(),
-    });
-
-    let user: User = serde_json::from_value(user_data).unwrap();
-
-    let response = server.post("/user").json(&user).await;
-
-    (email, password, response.status_code())
+pub async fn create_user(app: &TestApp) -> (String, String) {
+    create_user_with_role(app, "john.doe@example.com", Role::User).await
 }
 
-pub async fn user_logged(server: &TestServer) -> String {
-    let (email, password, _) = create_user(server).await;
+/// Straight into the database: POST /user needs an admin, so the first accounts can't use it
+pub async fn create_user_with_role(app: &TestApp, email: &str, role: Role) -> (String, String) {
+    let password = "JohnPassword123!".to_string();
+    let new_user = NewUser {
+        first_name: "John".to_string(),
+        last_name: "Doe".to_string(),
+        email: email.to_string(),
+        password: password.clone(),
+        avatar: String::new(),
+        role,
+    };
+    User::new(&app.pool, new_user).await.unwrap();
+    (email.to_string(), password)
+}
 
+pub async fn user_logged(app: &TestApp) -> String {
+    let (email, password) = create_user(app).await;
+    login(&app.server, email, password).await
+}
+
+pub async fn admin_logged(app: &TestApp) -> String {
+    let (email, password) = create_user_with_role(app, "admin@example.com", Role::Admin).await;
+    login(&app.server, email, password).await
+}
+
+pub async fn superadmin_logged(app: &TestApp) -> String {
+    let (email, password) = create_user_with_role(app, "root@example.com", Role::SuperAdmin).await;
+    login(&app.server, email, password).await
+}
+
+pub async fn login(server: &TestServer, email: String, password: String) -> String {
     let response = server
         .post("/auth")
         .json(&serde_json::json!({

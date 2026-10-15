@@ -1,9 +1,12 @@
 mod common;
 use crate::common::{
     app::spawn_app,
-    helpers::{create_student, user_logged},
+    helpers::{admin_logged, create_student, user_logged},
 };
-use attendance_service::schema::student::{Gender, Student, StudentResponse, UpdateStudent};
+use attendance_service::schema::{
+    pagination::Page,
+    student::{Gender, Student, StudentResponse, UpdateStudent},
+};
 use axum::http::StatusCode;
 use chrono::Utc;
 use uuid::Uuid;
@@ -11,7 +14,7 @@ use uuid::Uuid;
 #[tokio::test]
 async fn test_create_student_without_email() {
     let app = spawn_app().await;
-    let token = user_logged(&app.server).await;
+    let token = admin_logged(&app).await;
 
     let response = create_student(&app.server, &token).await;
     response.assert_status(StatusCode::OK);
@@ -20,7 +23,7 @@ async fn test_create_student_without_email() {
 #[tokio::test]
 async fn test_create_student_with_email() {
     let app = spawn_app().await;
-    let token = user_logged(&app.server).await;
+    let token = admin_logged(&app).await;
 
     let student = Student {
         id: Uuid::new_v4(),
@@ -48,7 +51,7 @@ async fn test_create_student_with_email() {
 #[tokio::test]
 async fn test_update_student() {
     let app = spawn_app().await;
-    let token = user_logged(&app.server).await;
+    let token = admin_logged(&app).await;
     let student = create_student(&app.server, &token).await;
     let student_id = student.json::<StudentResponse>().student.id.to_string();
     let student_id_route = format!("/student/{}", student_id);
@@ -71,7 +74,7 @@ async fn test_update_student() {
 #[tokio::test]
 async fn test_delete_student() {
     let app = spawn_app().await;
-    let token = user_logged(&app.server).await;
+    let token = admin_logged(&app).await;
     let student = create_student(&app.server, &token).await;
     let student_id = student.json::<StudentResponse>().student.id.to_string();
     let student_id_route = format!("/student/{}", student_id);
@@ -88,7 +91,7 @@ async fn test_delete_student() {
 #[tokio::test]
 async fn test_get_student_by_id() {
     let app = spawn_app().await;
-    let token = user_logged(&app.server).await;
+    let token = admin_logged(&app).await;
     let student = create_student(&app.server, &token).await;
     let student_id = student.json::<StudentResponse>().student.id.to_string();
     let student_id_route = format!("/student/{}", student_id);
@@ -105,7 +108,7 @@ async fn test_get_student_by_id() {
 #[tokio::test]
 async fn test_list_students() {
     let app = spawn_app().await;
-    let token = user_logged(&app.server).await;
+    let token = admin_logged(&app).await;
     let student = create_student(&app.server, &token).await;
 
     student.assert_status(StatusCode::OK);
@@ -113,4 +116,51 @@ async fn test_list_students() {
     let response = app.server.get("/student").authorization_bearer(token).await;
 
     response.assert_status(StatusCode::OK);
+}
+
+#[tokio::test]
+async fn test_user_role_cannot_write_students() {
+    let app = spawn_app().await;
+    let token = user_logged(&app).await;
+
+    create_student(&app.server, &token)
+        .await
+        .assert_status(StatusCode::FORBIDDEN);
+
+    // reading stays open to every logged-in user
+    app.server
+        .get("/student")
+        .authorization_bearer(token)
+        .await
+        .assert_status(StatusCode::OK);
+}
+
+#[tokio::test]
+async fn test_search_and_paginate_students() {
+    let app = spawn_app().await;
+    let token = admin_logged(&app).await;
+    create_student(&app.server, &token).await; // Jhon Doe, dni 12345678
+
+    let found = |search: &'static str| {
+        let request = app
+            .server
+            .get("/student")
+            .add_query_params([("search", search), ("per_page", "1")])
+            .authorization_bearer(token.clone());
+        async move { request.await.json::<Page<Student>>().total }
+    };
+
+    assert_eq!(found("jhon doe").await, 1); // full name, any case
+    assert_eq!(found("3456").await, 1); // part of the dni
+    assert_eq!(found("nobody").await, 0);
+    assert_eq!(found("%").await, 0); // wildcards are literal
+
+    let page = app
+        .server
+        .get("/student")
+        .add_query_params([("page", "2"), ("per_page", "1")])
+        .authorization_bearer(token)
+        .await
+        .json::<Page<Student>>();
+    assert_eq!((page.total, page.items.len(), page.page), (1, 0, 2));
 }
