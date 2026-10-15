@@ -1,8 +1,7 @@
-import Button from '../../components/atoms/Button'
-import Mono from '../../components/atoms/Mono'
-import DataTable, { type Column } from '../../components/molecules/DataTable'
-import PageHeader from '../../components/molecules/PageHeader'
-import { students } from '../../data/sample'
+import { type Column, DataTable, PageHeader } from '@components/common'
+import { Button, Mono } from '@components/ui'
+
+import { students } from '@/data/sample'
 
 const columns: Column<(typeof students)[number]>[] = [
   { header: 'Name', cell: (row) => row.name },

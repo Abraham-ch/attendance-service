@@ -1,5 +1,6 @@
-import type { AuthResponse, LoginData } from '../types/auth'
-import type { User } from '../types/user'
+import type { AuthResponse, LoginData } from '@/types/auth'
+import type { User } from '@/types/user'
+
 import { api } from './axios'
 
 export const login = async (data: LoginData): Promise<AuthResponse> => {

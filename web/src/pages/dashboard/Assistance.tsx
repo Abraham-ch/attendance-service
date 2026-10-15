@@ -1,8 +1,7 @@
-import Mono from '../../components/atoms/Mono'
-import DataTable, { type Column } from '../../components/molecules/DataTable'
-import PageHeader from '../../components/molecules/PageHeader'
-import StatusBadge from '../../components/molecules/StatusBadge'
-import { currentPeriod, roll } from '../../data/sample'
+import { type Column, DataTable, PageHeader, StatusBadge } from '@components/common'
+import { Mono } from '@components/ui'
+
+import { currentPeriod, roll } from '@/data/sample'
 
 const columns: Column<(typeof roll)[number]>[] = [
   { header: 'Student', cell: (row) => row.name },

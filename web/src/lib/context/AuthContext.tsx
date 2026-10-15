@@ -1,7 +1,7 @@
+import { getCurrentUser } from '@lib/auth'
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 
-import type { User } from '../../types/user'
-import { getCurrentUser } from '../auth'
+import type { User } from '@/types/user'
 
 type AuthContextType = {
   loading: boolean

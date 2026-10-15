@@ -1,8 +1,7 @@
-import type { Status } from '../../components/atoms/StatusDot'
-import PageHeader from '../../components/molecules/PageHeader'
-import StatCard from '../../components/molecules/StatCard'
-import RollPanel from '../../components/organisms/RollPanel'
-import { currentPeriod, roll } from '../../data/sample'
+import { PageHeader, RollPanel, StatCard } from '@components/common'
+import type { Status } from '@components/ui'
+
+import { currentPeriod, roll } from '@/data/sample'
 
 const statuses: Status[] = ['Present', 'Late', 'Absent', 'Excused']
 

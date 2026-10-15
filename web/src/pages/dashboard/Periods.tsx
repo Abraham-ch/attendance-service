@@ -1,9 +1,7 @@
-import Button from '../../components/atoms/Button'
-import Label from '../../components/atoms/Label'
-import Mono from '../../components/atoms/Mono'
-import DataTable, { type Column } from '../../components/molecules/DataTable'
-import PageHeader from '../../components/molecules/PageHeader'
-import { periods } from '../../data/sample'
+import { type Column, DataTable, PageHeader } from '@components/common'
+import { Button, Label, Mono } from '@components/ui'
+
+import { periods } from '@/data/sample'
 
 const columns: Column<(typeof periods)[number]>[] = [
   { header: 'Name', cell: (row) => row.name },

@@ -1,4 +1,4 @@
-import type { Status } from '../components/atoms/StatusDot'
+import type { Status } from '@components/ui'
 
 // ponytail: static sample data so the pages can be designed, replace with API calls per page
 

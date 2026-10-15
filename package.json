@@ -1,0 +1,14 @@
+{
+  "name": "attendance-service",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "pnpm --filter web dev",
+    "build": "pnpm --filter web build",
+    "lint": "pnpm --filter web lint",
+    "preview": "pnpm --filter web preview",
+    "fmt": "pnpm --filter web fmt",
+    "fmt:check": "pnpm --filter web fmt:check"
+  }
+}
