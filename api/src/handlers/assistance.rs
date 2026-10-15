@@ -1,6 +1,7 @@
 use axum::{
+    Json,
     extract::{
-        State, WebSocketUpgrade,
+        Path, State, WebSocketUpgrade,
         ws::{Message, WebSocket},
     },
     response::Response,
@@ -10,11 +11,20 @@ use futures_util::{
     stream::{SplitSink, SplitStream, StreamExt},
 };
 use tokio::sync::broadcast::{Receiver, error::RecvError};
+use uuid::Uuid;
 
 use crate::schema::{
-    app::AppState,
+    app::{AppError, AppState},
     assistance::{Assistance, NewAssistance},
 };
+
+pub async fn get_period_assistances(
+    State(state): State<AppState>,
+    Path(id): Path<Uuid>,
+) -> Result<Json<Vec<Assistance>>, AppError> {
+    let assistances = Assistance::get_by_period(&state.pool, id).await?;
+    Ok(Json(assistances))
+}
 
 #[axum::debug_handler]
 pub async fn ws_handler(State(state): State<AppState>, ws: WebSocketUpgrade) -> Response {

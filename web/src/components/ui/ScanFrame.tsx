@@ -4,9 +4,9 @@ import { decodeFromCanvas } from '@/lib/utils'
 
 const corner = 'absolute size-8 border-brass'
 
-type Props = { onDetect: (text: string) => void }
+type Props = { active: boolean; onDetect: (text: string) => void }
 
-function ScanFrame({ onDetect }: Props) {
+function ScanFrame({ active, onDetect }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
@@ -16,12 +16,14 @@ function ScanFrame({ onDetect }: Props) {
   }, [onDetect])
 
   useEffect(() => {
+    const video = videoRef.current
+    if (!active || !video) return
     let stream: MediaStream | undefined
-    let raf
+    let raf = 0
     let last = 0
     let cancelled = false
 
-    async function start() {
+    const start = async () => {
       stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: 'environment' }, // rear camera on phones
         audio: false
@@ -30,7 +32,6 @@ function ScanFrame({ onDetect }: Props) {
         stream.getTracks().forEach((t) => t.stop())
         return
       }
-      const video = videoRef.current!
       video.srcObject = stream
       await video.play()
       raf = requestAnimationFrame(tick)
@@ -74,9 +75,11 @@ function ScanFrame({ onDetect }: Props) {
 
     return () => {
       cancelled = true
+      cancelAnimationFrame(raf)
       stream?.getTracks().forEach((t) => t.stop())
+      video.srcObject = null // don't freeze on the last frame
     }
-  }, [])
+  }, [active])
 
   return (
     <div

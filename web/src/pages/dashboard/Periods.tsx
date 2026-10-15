@@ -1,25 +1,32 @@
 import { type Column, DataTable, PageHeader } from '@components/common'
 import { Button, Label, Mono } from '@components/ui'
+import { periodState } from '@lib/api'
+import { useLoaderData } from 'react-router'
 
-import { periods } from '@/data/sample'
+import type { Period } from '@/types/records'
 
-const columns: Column<(typeof periods)[number]>[] = [
+const columns: Column<Period>[] = [
   { header: 'Name', cell: (row) => row.name },
-  { header: 'Starts', cell: (row) => <Mono>{row.start}</Mono> },
-  { header: 'Ends', cell: (row) => <Mono>{row.end}</Mono> },
+  { header: 'Starts', cell: (row) => <Mono>{row.start_date.slice(0, 10)}</Mono> },
+  { header: 'Ends', cell: (row) => <Mono>{row.end_date.slice(0, 10)}</Mono> },
   {
     header: 'State',
-    cell: (row) => <Label tone={row.state === 'Current' ? 'brass' : 'dim'}>{row.state}</Label>
+    cell: (row) => {
+      const state = periodState(row)
+      return <Label tone={state === 'Current' ? 'brass' : 'dim'}>{state}</Label>
+    }
   }
 ]
 
 function Periods() {
+  const periods = useLoaderData<Period[]>()
+
   return (
     <>
       <PageHeader kicker="Records" title="Periods">
         <Button>New period</Button>
       </PageHeader>
-      <DataTable columns={columns} rows={periods} rowKey={(row) => row.name} />
+      <DataTable columns={columns} rows={periods} rowKey={(row) => row.id} />
     </>
   )
 }
