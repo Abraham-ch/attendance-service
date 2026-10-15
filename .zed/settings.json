@@ -4,6 +4,10 @@
   "languages": {
     "Rust": {
       "tab_size": 4,
+      // rustfmt straight from stdin, so saving formats even while rust-analyzer is loading or down
+      "formatter": {
+        "external": { "command": "rustfmt", "arguments": ["--edition", "2024"] },
+      },
     },
     "TypeScript": {
       "prettier": { "allowed": false },
