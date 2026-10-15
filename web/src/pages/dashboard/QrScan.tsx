@@ -11,7 +11,7 @@ function QrScan() {
       </PageHeader>
       <div className="grid items-start gap-10 lg:grid-cols-[24rem_1fr]">
         <div className="flex flex-col gap-4">
-          <ScanFrame />
+          <ScanFrame onDetect={(code) => console.log('Scanned:', code)} />
           <Label>Camera preview</Label>
           <Text className="text-sm">
             Point the camera at a student code. Each scan is sent with the current period and shows

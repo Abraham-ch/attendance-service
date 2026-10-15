@@ -10,5 +10,14 @@
     "preview": "pnpm --filter web preview",
     "fmt": "pnpm --filter web fmt",
     "fmt:check": "pnpm --filter web fmt:check"
+  },
+  "pnpm": {
+    "packageExtensions": {
+      "vite-plugin-top-level-await": {
+        "dependencies": {
+          "rollup": "^4"
+        }
+      }
+    }
   }
 }

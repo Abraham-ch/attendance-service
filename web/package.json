@@ -19,6 +19,7 @@
     "react-dom": "^19.2.8",
     "react-hook-form": "^7.90.0",
     "react-router": "^8.4.0",
+    "rxing-wasm": "^0.5.8",
     "tailwindcss": "^4.3.3",
     "zod": "^4.6.7"
   },
@@ -33,7 +34,9 @@
     "babel-plugin-react-compiler": "^1.0.0",
     "oxfmt": "^0.72.0",
     "oxlint": "^1.81.0",
+    "rollup": "^4.64.6",
     "typescript": "~6.0.2",
-    "vite": "^8.3.0"
+    "vite": "^8.3.0",
+    "vite-plugin-wasm": "^3.6.0"
   }
 }
