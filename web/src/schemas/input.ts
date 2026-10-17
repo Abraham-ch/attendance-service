@@ -18,9 +18,11 @@ const passwordSchema = z
     message: 'Password must contain at least one symbol, like ! or ?.'
   })
 
+// Login only checks presence: the strength rules belong to setting a password, and
+// listing them here would just hint at what a valid password looks like
 export const LoginSchema = z.object({
-  email: z.email(),
-  password: passwordSchema
+  email: z.email({ message: 'Enter a valid email address.' }),
+  password: z.string().min(1, { message: 'Enter your password.' })
 })
 
 // Inputs give '' for an empty optional field, the API wants it left out

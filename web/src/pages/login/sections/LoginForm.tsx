@@ -1,8 +1,11 @@
 import { Field } from '@components/common'
 import { ArrowLink, Button, Heading, Label } from '@components/ui'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { apiError } from '@lib/api'
 import { login } from '@lib/auth'
 import { useAuth } from '@lib/context/AuthContext'
+import { isAxiosError } from 'axios'
+import { useState } from 'react'
 import { useForm, type SubmitHandler } from 'react-hook-form'
 import { useNavigate } from 'react-router'
 
@@ -13,19 +16,35 @@ import type { LoginData } from '@/types/auth'
 function LoginForm() {
   const navigate = useNavigate()
   const { setUser } = useAuth()
-  const { register, handleSubmit } = useForm<LoginData>({ resolver: zodResolver(LoginSchema) })
+  const [error, setError] = useState('')
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting }
+  } = useForm<LoginData>({ resolver: zodResolver(LoginSchema) })
 
   const onSubmit: SubmitHandler<LoginData> = async (data) => {
+    setError('')
     try {
       const { user } = await login(data)
       setUser(user)
       navigate(paths.dashboard)
     } catch (err) {
-      console.log('Login failed', err)
+      // The API answers 401 for both an unknown email and a wrong password, on purpose:
+      // telling them apart would let anyone check which emails have an account
+      setError(
+        isAxiosError(err) && err.response?.status === 401
+          ? 'Invalid email or password.'
+          : apiError(err)
+      )
     }
   }
   return (
-    <form className="flex w-full max-w-sm flex-col gap-6" onSubmit={handleSubmit(onSubmit)}>
+    <form
+      className="flex w-full max-w-sm flex-col gap-6"
+      onSubmit={handleSubmit(onSubmit)}
+      noValidate
+    >
       <div className="flex flex-col gap-2">
         <Label tone="brass">Log in</Label>
         <Heading as="h1" size="title">
@@ -37,7 +56,7 @@ function LoginForm() {
         type="email"
         autoComplete="email"
         placeholder="you@school.edu"
-        required
+        error={errors.email?.message}
         {...register('email')}
       />
       <Field
@@ -45,12 +64,17 @@ function LoginForm() {
         type="password"
         placeholder="********"
         autoComplete="current-password"
-        minLength={10}
-        maxLength={20}
-        required
+        error={errors.password?.message}
         {...register('password')}
       />
-      <Button type="submit">Log in</Button>
+      {error && (
+        <p role="alert" className="text-sm text-absent">
+          {error}
+        </p>
+      )}
+      <Button type="submit" disabled={isSubmitting}>
+        {isSubmitting ? 'Logging in…' : 'Log in'}
+      </Button>
       <ArrowLink href={paths.home}>Back to home</ArrowLink>
     </form>
   )
