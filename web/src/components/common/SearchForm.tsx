@@ -2,7 +2,6 @@ import { Input } from '@components/ui'
 import { Form, useSearchParams, useSubmit } from 'react-router'
 
 // GET form: typing puts ?search= in the URL and drops ?page, so results restart at page 1.
-// ponytail: one request per keystroke (the router cancels stale ones), debounce if the API feels it
 function SearchForm({ placeholder }: { placeholder: string }) {
   const [params] = useSearchParams()
   const submit = useSubmit()

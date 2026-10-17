@@ -15,6 +15,10 @@ export function assignableRoles(user: User | null): User['role'][] {
   return []
 }
 
+// Same rule for editing: the SuperAdmin manages admins and users, an admin only users
+export const canManage = (user: User | null, target: User) =>
+  assignableRoles(user).includes(target.role)
+
 export function useIsAdmin() {
   const { user } = useAuth()
   return isAdmin(user)

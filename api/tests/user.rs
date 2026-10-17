@@ -5,11 +5,15 @@ use attendance_service::schema::{
 };
 use axum::http::StatusCode;
 use chrono::{Duration, Utc};
+use serde_json::json;
 use uuid::Uuid;
 
 use crate::common::{
     app::spawn_app,
-    helpers::{admin_logged, create_student, create_user, superadmin_logged, user_logged},
+    helpers::{
+        admin_logged, create_student, create_user, create_user_with_role, superadmin_logged,
+        user_logged,
+    },
 };
 
 mod common;
@@ -196,6 +200,142 @@ async fn test_register_with_invite_token() {
     app.server
         .post("/auth")
         .json(&serde_json::json!({ "email": "jhon@example.com", "password": "JhonPassword123!" }))
+        .await
+        .assert_status_ok();
+}
+
+#[tokio::test]
+async fn test_avatar_upload_only_takes_images_from_admins() {
+    let app = spawn_app().await;
+    let admin = admin_logged(&app).await;
+    let user = user_logged(&app).await;
+
+    app.server
+        .post("/user/avatar")
+        .authorization_bearer(&user)
+        .content_type("image/jpeg")
+        .bytes(vec![1, 2, 3].into())
+        .await
+        .assert_status(StatusCode::FORBIDDEN);
+
+    // checked before anything is sent to Supabase
+    app.server
+        .post("/user/avatar")
+        .authorization_bearer(&admin)
+        .content_type("text/html")
+        .bytes(b"<script>".to_vec().into())
+        .await
+        .assert_status(StatusCode::BAD_REQUEST);
+}
+
+#[tokio::test]
+async fn test_any_user_can_send_their_own_avatar() {
+    let app = spawn_app().await;
+    let user = user_logged(&app).await;
+
+    app.server
+        .post("/user/me/avatar")
+        .content_type("image/jpeg")
+        .bytes(vec![1, 2, 3].into())
+        .await
+        .assert_status(StatusCode::UNAUTHORIZED);
+
+    // a student gets past the role check (unlike /user/avatar), the type check still applies
+    app.server
+        .post("/user/me/avatar")
+        .authorization_bearer(&user)
+        .content_type("text/html")
+        .bytes(b"<script>".to_vec().into())
+        .await
+        .assert_status(StatusCode::BAD_REQUEST);
+}
+
+async fn user_id(app: &crate::common::app::TestApp, email: &str) -> Uuid {
+    User::find_by_email(&app.pool, email.to_string())
+        .await
+        .unwrap()
+        .id
+}
+
+#[tokio::test]
+async fn test_admins_edit_users_but_not_other_admins() {
+    let app = spawn_app().await;
+    let admin = admin_logged(&app).await;
+    let (john, _) = create_user(&app).await;
+    create_user_with_role(&app, "other.admin@example.com", Role::Admin).await;
+    let john = user_id(&app, &john).await;
+    let other_admin = user_id(&app, "other.admin@example.com").await;
+
+    let response = app
+        .server
+        .patch(&format!("/user/{john}"))
+        .authorization_bearer(&admin)
+        .json(&json!({ "first_name": "Johnny" }))
+        .await;
+    response.assert_status_ok();
+    assert_eq!(response.json::<User>().first_name, "Johnny");
+
+    for (id, body) in [
+        (john, json!({ "role": "Admin" })), // no promoting to their own rank
+        (other_admin, json!({ "first_name": "Nope" })),
+    ] {
+        app.server
+            .patch(&format!("/user/{id}"))
+            .authorization_bearer(&admin)
+            .json(&body)
+            .await
+            .assert_status(StatusCode::FORBIDDEN);
+    }
+    app.server
+        .delete(&format!("/user/{other_admin}"))
+        .authorization_bearer(&admin)
+        .await
+        .assert_status(StatusCode::FORBIDDEN);
+}
+
+#[tokio::test]
+async fn test_superadmin_edits_admins_but_nobody_edits_the_superadmin() {
+    let app = spawn_app().await;
+    let root = superadmin_logged(&app).await;
+    create_user_with_role(&app, "teacher@example.com", Role::Admin).await;
+    let teacher = user_id(&app, "teacher@example.com").await;
+    let root_id = user_id(&app, "root@example.com").await;
+
+    app.server
+        .patch(&format!("/user/{teacher}"))
+        .authorization_bearer(&root)
+        .json(&json!({ "role": "User" }))
+        .await
+        .assert_status_ok();
+
+    app.server
+        .patch(&format!("/user/{root_id}"))
+        .authorization_bearer(&root)
+        .json(&json!({ "role": "User" }))
+        .await
+        .assert_status(StatusCode::FORBIDDEN);
+}
+
+#[tokio::test]
+async fn test_edited_password_is_hashed_and_never_sent_back() {
+    let app = spawn_app().await;
+    let admin = admin_logged(&app).await;
+    let (email, _) = create_user(&app).await;
+    let id = user_id(&app, &email).await;
+
+    let response = app
+        .server
+        .patch(&format!("/user/{id}"))
+        .authorization_bearer(&admin)
+        .json(&json!({ "password": "NewPassword123!" }))
+        .await;
+    response.assert_status_ok();
+    assert!(!response.text().contains("password"));
+
+    // logging in only works if it was stored as an argon2 hash
+    app.server
+        .post("/auth")
+        .json(&json!({ "email": email, "password": "NewPassword123!" }))
         .await
         .assert_status_ok();
 }

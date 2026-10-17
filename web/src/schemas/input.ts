@@ -52,6 +52,15 @@ export const RegisterSchema = z
     path: ['confirm']
   })
 
+// UpdateUser in api/src/schema/user.rs: an empty password keeps the current one
+export const UserUpdateSchema = z.object({
+  first_name: z.string().trim().min(3).max(20),
+  last_name: z.string().trim().min(3).max(20),
+  email: z.email(),
+  password: z.preprocess(blank, passwordSchema.optional()),
+  role: z.enum(['Admin', 'User'])
+})
+
 // NewUser in api/src/schema/user.rs
 export const UserSchema = z.object({
   first_name: z.string().trim().min(3).max(20),

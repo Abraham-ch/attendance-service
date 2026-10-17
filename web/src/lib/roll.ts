@@ -4,6 +4,7 @@ import { useLoaderData } from 'react-router'
 import type { Assistance, NewAssistance } from '@/types/records'
 
 import type { loadRoll } from './api'
+import { isAdmin } from './roles'
 import { getToken } from './utils'
 
 function socketUrl() {
@@ -14,9 +15,11 @@ function socketUrl() {
   return url
 }
 
-// ponytail: no reconnect, a dropped socket shows as "Offline" until the page reloads.
 // Add a retry with backoff if connections drop in practice.
-export function useAssistanceSocket(onAssistance: (assistance: Assistance) => void) {
+export function useAssistanceSocket(
+  enabled: boolean, // the API only lets staff open it
+  onAssistance: (assistance: Assistance) => void
+) {
   const socket = useRef<WebSocket | null>(null)
   const [connected, setConnected] = useState(false)
 
@@ -26,13 +29,14 @@ export function useAssistanceSocket(onAssistance: (assistance: Assistance) => vo
   }, [onAssistance])
 
   useEffect(() => {
+    if (!enabled) return
     const ws = new WebSocket(socketUrl())
     socket.current = ws
     ws.onopen = () => setConnected(true)
     ws.onclose = () => setConnected(false)
     ws.onmessage = (event) => onAssistanceRef.current(JSON.parse(event.data))
     return () => ws.close()
-  }, [])
+  }, [enabled])
 
   function send(scan: NewAssistance) {
     if (socket.current?.readyState !== WebSocket.OPEN) return false
@@ -47,10 +51,17 @@ export const today = () => new Date().toISOString().slice(0, 10) // the API stor
 
 // Roll of the current period: loader data plus every record the socket broadcasts
 export function useLiveRoll() {
-  const { period, students, assistances } = useLoaderData<typeof loadRoll>()
+  const { me, period, students, assistances } = useLoaderData<typeof loadRoll>()
+  const admin = isAdmin(me)
   const [records, setRecords] = useState(assistances)
+  // a revalidation (e.g. after a student checks in) brings new loader data
+  const [loaded, setLoaded] = useState(assistances)
+  if (loaded !== assistances) {
+    setLoaded(assistances)
+    setRecords(assistances)
+  }
 
-  const { connected, send } = useAssistanceSocket((assistance) => {
+  const { connected, send } = useAssistanceSocket(admin, (assistance) => {
     if (assistance.period_id === period?.id) setRecords((prev) => [assistance, ...prev])
   })
 
@@ -70,5 +81,6 @@ export function useLiveRoll() {
       notes: record.notes ?? ''
     }))
 
-  return { period, students, rows, connected, send }
+  // live is undefined for students: no socket, nothing to show as offline
+  return { me, admin, period, students, rows, live: admin ? connected : undefined, send }
 }

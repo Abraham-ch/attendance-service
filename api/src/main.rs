@@ -21,12 +21,6 @@ async fn main() -> anyhow::Result<()> {
 
     let (tx, _) = broadcast::channel::<String>(100);
 
-    // Run migrations
-    sqlx::migrate!("./migrations")
-        .run(&pool)
-        .await
-        .expect("Failed to run migrations");
-
     println!("Connected to database");
 
     let appstate = AppState {

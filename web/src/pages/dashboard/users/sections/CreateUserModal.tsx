@@ -1,12 +1,12 @@
-import { Field, Modal, SelectField } from '@components/common'
+import { AvatarPicker, Field, Modal, SelectField } from '@components/common'
 import { Button } from '@components/ui'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { apiError, createUser } from '@lib/api'
+import { apiError, createUser, uploadAvatar } from '@lib/api'
 import { useAuth } from '@lib/context/AuthContext'
 import { assignableRoles } from '@lib/roles'
 import { toast } from '@lib/toast'
 import { useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 
 import { UserSchema } from '@/schemas/input'
 
@@ -16,15 +16,21 @@ function CreateUserModal({ onClose, onSaved }: Props) {
   const { user } = useAuth()
   const roles = assignableRoles(user)
   const [error, setError] = useState('')
+  const [avatar, setAvatar] = useState<Blob | null>(null)
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors, isSubmitting }
   } = useForm({ resolver: zodResolver(UserSchema), defaultValues: { role: 'User' } })
+  const [first, last] = useWatch({ control, name: ['first_name', 'last_name'] })
+  const name = `${first ?? ''} ${last ?? ''}`.trim()
 
   const onSubmit = handleSubmit(async (newUser) => {
     try {
-      await createUser(newUser)
+      // uploaded on submit, not on pick, so changing the picture doesn't leave extra files
+      const url = avatar ? await uploadAvatar(avatar) : undefined
+      await createUser({ ...newUser, avatar: url })
       toast(`${newUser.first_name} ${newUser.last_name} added as ${newUser.role}`)
       onSaved()
     } catch (err) {
@@ -36,6 +42,12 @@ function CreateUserModal({ onClose, onSaved }: Props) {
   return (
     <Modal title="New user" onClose={onClose}>
       <form className="grid gap-4 sm:grid-cols-2" onSubmit={onSubmit} noValidate>
+        <AvatarPicker
+          name={name}
+          onChange={setAvatar}
+          onError={setError}
+          className="sm:col-span-2"
+        />
         <Field
           compact
           label="First name"

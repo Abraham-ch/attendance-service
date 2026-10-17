@@ -1,8 +1,8 @@
-use chrono::Utc;
+use chrono::{NaiveDate, Utc};
 use sqlx::PgPool;
 use uuid::Uuid;
 
-use crate::schema::assistance::{Assistance, NewAssistance, Status};
+use crate::schema::assistance::{Assistance, DailyCode, NewAssistance, Status};
 
 impl Assistance {
     pub async fn new(pool: &PgPool, new_period: NewAssistance) -> Result<Assistance, sqlx::Error> {
@@ -115,5 +115,30 @@ impl Assistance {
         )
         .fetch_all(pool)
         .await
+    }
+}
+
+impl DailyCode {
+    /// Logs where (and by whom) the daily QR was generated, see migration 0013
+    pub async fn record_location(
+        pool: &PgPool,
+        user_id: Uuid,
+        date: NaiveDate,
+        (lat, lng): (f64, f64),
+    ) -> Result<(), sqlx::Error> {
+        sqlx::query!(
+            r#"
+                INSERT INTO daily_code_locations (id, user_id, date, lat, lng)
+                VALUES ($1, $2, $3, $4, $5)
+            "#,
+            Uuid::new_v4(),
+            user_id,
+            date,
+            lat,
+            lng
+        )
+        .execute(pool)
+        .await
+        .map(|_| ())
     }
 }

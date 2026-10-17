@@ -30,6 +30,7 @@ impl Student {
             gender: new_student.gender as Gender,
             phone: new_student.phone,
             address: new_student.address,
+            avatar: None,
             created_at: Utc::now(),
             updated_at: Utc::now(),
         };
@@ -61,6 +62,7 @@ impl Student {
                     gender as "gender: Gender",
                     phone,
                     address,
+                    NULL::TEXT AS avatar,
                     created_at,
                     updated_at
             "#,
@@ -164,6 +166,11 @@ impl Student {
                     gender AS "gender:Gender",
                     phone,
                     address,
+                    (
+                        SELECT u.avatar FROM users u
+                        WHERE u.student_id = students.id AND u.avatar <> ''
+                        LIMIT 1
+                    ) AS avatar,
                     created_at,
                     updated_at
                 FROM students
@@ -211,6 +218,11 @@ impl Student {
                     gender AS "gender:Gender",
                     phone,
                     address,
+                    (
+                        SELECT u.avatar FROM users u
+                        WHERE u.student_id = students.id AND u.avatar <> ''
+                        LIMIT 1
+                    ) AS avatar,
                     created_at,
                     updated_at
                 FROM students

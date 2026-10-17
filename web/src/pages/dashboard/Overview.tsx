@@ -4,23 +4,31 @@ import { today, useLiveRoll } from '@lib/roll'
 
 const statuses: Status[] = ['Present', 'Late', 'Absent', 'Excused']
 
+// Staff see today's roll for the whole school, a student their own record for the period
 function Overview() {
-  const { period, rows, connected } = useLiveRoll()
-  const todayRows = rows.filter((row) => row.date === today())
+  const { admin, period, rows, live } = useLiveRoll()
+  const shown = admin ? rows.filter((row) => row.date === today()) : rows
 
   return (
     <>
-      <PageHeader kicker={period ? `Period ${period.name}` : 'No current period'} title="Today" />
+      <PageHeader
+        kicker={period ? `Period ${period.name}` : 'No current period'}
+        title={admin ? 'Today' : 'My attendance'}
+      />
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {statuses.map((status) => (
           <StatCard
             key={status}
             status={status}
-            value={todayRows.filter((row) => row.status === status).length}
+            value={shown.filter((row) => row.status === status).length}
           />
         ))}
       </div>
-      <RollPanel title="Latest records" rows={todayRows.slice(0, 10)} live={connected} />
+      <RollPanel
+        title={admin ? 'Latest records' : 'My latest records'}
+        rows={shown.slice(0, 10)}
+        live={live}
+      />
     </>
   )
 }

@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n                INSERT INTO users\n                    (id, first_name, last_name, email, password, avatar, role, student_id, status)\n                VALUES\n                    ($1, $2, $3, $4, $5, '', $6, $7, 'active')\n                RETURNING\n                    id,\n                    first_name,\n                    last_name,\n                    email,\n                    password,\n                    avatar,\n                    role AS \"role: Role\",\n                    created_at,\n                    updated_at\n            ",
+  "query": "\n                INSERT INTO users\n                    (id, first_name, last_name, email, password, avatar, role, student_id, status)\n                VALUES\n                    ($1, $2, $3, $4, $5, '', $6, $7, 'active')\n                RETURNING\n                    id,\n                    first_name,\n                    last_name,\n                    email,\n                    password,\n                    avatar,\n                    student_id,\n                    role AS \"role: Role\",\n                    created_at,\n                    updated_at\n            ",
   "describe": {
     "columns": [
       {
@@ -35,6 +35,11 @@
       },
       {
         "ordinal": 6,
+        "name": "student_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 7,
         "name": "role: Role",
         "type_info": {
           "Custom": {
@@ -50,12 +55,12 @@
         }
       },
       {
-        "ordinal": 7,
+        "ordinal": 8,
         "name": "created_at",
         "type_info": "Timestamptz"
       },
       {
-        "ordinal": 8,
+        "ordinal": 9,
         "name": "updated_at",
         "type_info": "Timestamptz"
       }
@@ -89,10 +94,11 @@
       false,
       false,
       false,
+      true,
       false,
       false,
       false
     ]
   },
-  "hash": "8945fdee9f4259667bf275f2dcec7d45af82573ef0792823bfa91927c42b6fbc"
+  "hash": "e0de27c483aef6654cf966a3eaa90f30380164e1e72b41e5fcf3e771bdbebbc7"
 }

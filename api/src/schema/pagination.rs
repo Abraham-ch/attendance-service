@@ -9,7 +9,6 @@ pub struct PageQuery {
     pub search: Option<String>,
 }
 
-// ponytail: high ceiling so the attendance roll can still load every student in one call,
 // lower it once the roll gets student names from the API instead
 const MAX_PER_PAGE: i64 = 1000;
 const DEFAULT_PER_PAGE: i64 = 10;

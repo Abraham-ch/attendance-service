@@ -45,6 +45,8 @@ pub struct User {
     #[serde(skip_serializing, default)]
     pub password: String,
     pub avatar: String,
+    /// The student this account belongs to, set when a student activates their invite
+    pub student_id: Option<Uuid>,
     pub role: Role,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
@@ -121,6 +123,12 @@ pub struct InviteInfo {
     pub first_name: String,
     pub last_name: String,
     pub email: String,
+}
+
+/// Answer of POST /user/avatar, goes into NewUser.avatar
+#[derive(Debug, Deserialize, Serialize, JsonSchema)]
+pub struct AvatarUpload {
+    pub url: String,
 }
 
 #[derive(Debug, Deserialize, JsonSchema)]

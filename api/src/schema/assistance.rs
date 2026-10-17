@@ -36,3 +36,26 @@ pub struct UpdateAssistance {
     pub status: Option<Status>,
     pub notes: Option<String>,
 }
+
+/// Body of POST /assistance/check-in: what the student's phone read from the daily QR,
+/// and where the phone is
+#[derive(Debug, Deserialize, Serialize, JsonSchema)]
+pub struct CheckIn {
+    pub code: String,
+    pub lat: f64,
+    pub lng: f64,
+}
+
+/// GET /assistance/daily-code?lat=&lng=, where the admin showing the QR is
+#[derive(Debug, Deserialize, JsonSchema)]
+pub struct Location {
+    pub lat: f64,
+    pub lng: f64,
+}
+
+/// The QR admins show for the day, see utils::daily_code
+#[derive(Debug, Serialize, JsonSchema)]
+pub struct DailyCode {
+    pub code: String,
+    pub date: NaiveDate,
+}

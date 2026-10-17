@@ -23,6 +23,8 @@ pub struct Student {
     pub gender: Gender,
     pub phone: Option<i64>,
     pub address: Option<String>,
+    /// Avatar of the student's own account, if they activated one (read-only)
+    pub avatar: Option<String>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }

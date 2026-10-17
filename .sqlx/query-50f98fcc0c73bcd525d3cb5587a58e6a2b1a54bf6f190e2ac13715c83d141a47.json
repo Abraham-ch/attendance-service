@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n                SELECT\n                    id,\n                    dni,\n                    first_name,\n                    last_name,\n                    email,\n                    gender AS \"gender:Gender\",\n                    phone,\n                    address,\n                    created_at,\n                    updated_at\n                FROM students\n                WHERE id = $1\n            ",
+  "query": "\n                SELECT\n                    id,\n                    dni,\n                    first_name,\n                    last_name,\n                    email,\n                    gender AS \"gender:Gender\",\n                    phone,\n                    address,\n                    (\n                        SELECT u.avatar FROM users u\n                        WHERE u.student_id = students.id AND u.avatar <> ''\n                        LIMIT 1\n                    ) AS avatar,\n                    created_at,\n                    updated_at\n                FROM students\n                WHERE id = $1\n            ",
   "describe": {
     "columns": [
       {
@@ -55,11 +55,16 @@
       },
       {
         "ordinal": 8,
+        "name": "avatar",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 9,
         "name": "created_at",
         "type_info": "Timestamptz"
       },
       {
-        "ordinal": 9,
+        "ordinal": 10,
         "name": "updated_at",
         "type_info": "Timestamptz"
       }
@@ -78,9 +83,10 @@
       false,
       true,
       true,
+      null,
       false,
       false
     ]
   },
-  "hash": "fcb80bc58653052a4b0976cd24ac87fdd66a8f64e9cf6998692d69af75a00b5e"
+  "hash": "50f98fcc0c73bcd525d3cb5587a58e6a2b1a54bf6f190e2ac13715c83d141a47"
 }

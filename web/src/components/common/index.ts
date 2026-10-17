@@ -1,3 +1,4 @@
+export { default as AvatarPicker } from './AvatarPicker'
 export { default as Brand } from './Brand'
 export { default as DataTable, type Column } from './DataTable'
 export { default as FeatureRow } from './FeatureRow'

@@ -30,6 +30,21 @@ impl Period {
             .await
     }
 
+    /// The period running right now, RowNotFound when there is none
+    pub async fn current(pool: &PgPool) -> Result<Period, sqlx::Error> {
+        sqlx::query_as!(
+            Period,
+            r#"
+                SELECT * FROM periods
+                WHERE start_date <= NOW() AND end_date >= NOW()
+                ORDER BY start_date DESC
+                LIMIT 1
+            "#
+        )
+        .fetch_one(pool)
+        .await
+    }
+
     pub async fn delete(pool: &PgPool, id: Uuid) -> Result<(), sqlx::Error> {
         sqlx::query!(r#"DELETE FROM periods WHERE id = $1"#, id)
             .execute(pool)

@@ -6,7 +6,7 @@ import { useLoaderData, useRevalidator } from 'react-router'
 
 import type { Page, Student } from '@/types/records'
 
-import { CreateStudentModal, DeleteStudentModal, EditStudentModal } from './sections'
+import { CreateStudentModal, DeleteStudentModal, EditStudentModal, IdCardModal } from './sections'
 
 const columns: Column<Student>[] = [
   { header: 'Name', cell: (row) => `${row.first_name} ${row.last_name}` },
@@ -16,7 +16,7 @@ const columns: Column<Student>[] = [
   { header: 'Phone', cell: (row) => <Mono>{row.phone ?? '—'}</Mono> }
 ]
 
-type Dialog = { kind: 'create' } | { kind: 'edit' | 'delete'; student: Student } | null
+type Dialog = { kind: 'create' } | { kind: 'edit' | 'delete' | 'card'; student: Student } | null
 
 function Students() {
   const { items, total, page, per_page } = useLoaderData<Page<Student>>()
@@ -36,6 +36,11 @@ function Students() {
       const name = `${row.first_name} ${row.last_name}`
       return (
         <div className="-my-2 flex gap-1">
+          <IconButton
+            icon="pdf"
+            label={`Student card for ${name}`}
+            onClick={() => setDialog({ kind: 'card', student: row })}
+          />
           <IconButton
             icon="edit"
             label={`Edit ${name}`}
@@ -68,6 +73,7 @@ function Students() {
       {dialog?.kind === 'edit' && (
         <EditStudentModal student={dialog.student} onClose={close} onSaved={saved} />
       )}
+      {dialog?.kind === 'card' && <IdCardModal student={dialog.student} onClose={close} />}
       {dialog?.kind === 'delete' && (
         <DeleteStudentModal student={dialog.student} onClose={close} onSaved={saved} />
       )}

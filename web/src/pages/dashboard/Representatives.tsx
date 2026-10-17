@@ -4,7 +4,6 @@ import { useLoaderData } from 'react-router'
 
 import type { Representative } from '@/types/records'
 
-// ponytail: GET /representative doesn't return the linked student or relationship yet,
 // add those columns back once the API joins student_representatives
 const columns: Column<Representative>[] = [
   { header: 'Name', cell: (row) => `${row.first_name} ${row.last_name}` },

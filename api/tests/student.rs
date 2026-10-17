@@ -34,6 +34,7 @@ async fn test_create_student_with_email() {
         gender: Gender::Male,
         phone: None,
         address: None,
+        avatar: None,
         created_at: Utc::now(),
         updated_at: Utc::now(),
     };
@@ -119,7 +120,7 @@ async fn test_list_students() {
 }
 
 #[tokio::test]
-async fn test_user_role_cannot_write_students() {
+async fn test_user_role_cannot_see_or_write_students() {
     let app = spawn_app().await;
     let token = user_logged(&app).await;
 
@@ -127,12 +128,12 @@ async fn test_user_role_cannot_write_students() {
         .await
         .assert_status(StatusCode::FORBIDDEN);
 
-    // reading stays open to every logged-in user
+    // a student reads their own data through /assistance/me, not the whole list
     app.server
         .get("/student")
         .authorization_bearer(token)
         .await
-        .assert_status(StatusCode::OK);
+        .assert_status(StatusCode::FORBIDDEN);
 }
 
 #[tokio::test]

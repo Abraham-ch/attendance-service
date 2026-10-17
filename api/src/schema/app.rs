@@ -38,6 +38,9 @@ pub enum AppError {
     Conflict,
     #[error("El registro está en uso por otros registros")]
     InUse,
+    /// 400 with a message meant for the person using the app
+    #[error("{0}")]
+    BadRequest(&'static str),
     #[error("Error interno")]
     Internal(#[source] anyhow::Error),
 }
@@ -63,6 +66,7 @@ impl IntoResponse for AppError {
     fn into_response(self) -> Response {
         let status = match &self {
             AppError::NotFound => StatusCode::NOT_FOUND,
+            AppError::BadRequest(_) => StatusCode::BAD_REQUEST,
             AppError::Validation(_) => StatusCode::UNPROCESSABLE_ENTITY,
             AppError::Unauthenticated => StatusCode::UNAUTHORIZED,
             AppError::Forbidden => StatusCode::FORBIDDEN,
@@ -113,6 +117,7 @@ impl OperationOutput for AppError {
         };
 
         vec![
+            (Some(400), with("Solicitud inválida")),
             (Some(401), with("No autenticado")),
             (Some(403), with("Sin permisos")),
             (Some(404), with("Recurso no encontrado")),

@@ -25,7 +25,9 @@ use uuid::Uuid;
 use crate::{
     docs::docs,
     handlers::{
-        assistance::{get_period_assistances, ws_handler},
+        assistance::{
+            check_in, get_daily_code, get_my_assistances, get_period_assistances, ws_handler,
+        },
         auth::{get_invite, login_user, register_user},
         period::{create_period, delete_period, get_periods},
         representative::{
@@ -35,7 +37,10 @@ use crate::{
         student::{
             create_student, delete_student, get_student_by_id, list_students, update_student,
         },
-        user::{create_user, delete_user, get_me, get_user_by_id, list_users, update_user},
+        user::{
+            create_user, delete_user, get_me, get_user_by_id, list_users, update_user,
+            upload_avatar, upload_my_avatar,
+        },
     },
     middlewares::user::{admin_only, auth_middleware},
     schema::{app::AppState, errors::OtherError},
@@ -75,21 +80,22 @@ pub fn app(appstate: AppState) -> Router {
 
     let mut open_api = OpenApi::default();
 
-    // writes are for Admin/SuperAdmin only, every other logged-in user can read
-    let student_admin_routes = ApiRouter::new()
-        .api_route("/", post(create_student))
-        .api_route("/{id}", patch(update_student).delete(delete_student))
-        .route_layer(axum::middleware::from_fn(admin_only));
-
+    // Admin/SuperAdmin only, a student reads their own data through /assistance/me
     let student_routes = ApiRouter::new()
-        .api_route("/", get(list_students))
-        .api_route("/{id}", get(get_student_by_id))
-        .merge(student_admin_routes)
+        .api_route("/", get(list_students).post(create_student))
+        .api_route(
+            "/{id}",
+            get(get_student_by_id)
+                .patch(update_student)
+                .delete(delete_student),
+        )
+        .route_layer(axum::middleware::from_fn(admin_only))
         .route_layer(axum::middleware::from_fn_with_state(
             Arc::new(appstate.clone()),
             auth_middleware,
         ));
 
+    // students only see their own data (/assistance/me), the records pages are staff only
     let representative_routes = ApiRouter::new()
         .api_route("/", get(list_representatives).post(create_representative))
         .api_route(
@@ -98,15 +104,22 @@ pub fn app(appstate: AppState) -> Router {
                 .get(get_representative_by_id)
                 .delete(delete_representative),
         )
+        .route_layer(axum::middleware::from_fn(admin_only))
         .route_layer(axum::middleware::from_fn_with_state(
             Arc::new(appstate.clone()),
             auth_middleware,
         ));
 
-    let period_routes = ApiRouter::new()
-        .api_route("/", get(get_periods).post(create_period))
+    // everyone can read the periods (the dashboard shows the current one's name)
+    let period_admin_routes = ApiRouter::new()
+        .api_route("/", post(create_period))
         .api_route("/{id}", delete(delete_period))
         .api_route("/{id}/assistance", get(get_period_assistances))
+        .route_layer(axum::middleware::from_fn(admin_only));
+
+    let period_routes = ApiRouter::new()
+        .api_route("/", get(get_periods))
+        .merge(period_admin_routes)
         .route_layer(axum::middleware::from_fn_with_state(
             Arc::new(appstate.clone()),
             auth_middleware,
@@ -121,10 +134,12 @@ pub fn app(appstate: AppState) -> Router {
             "/{id}",
             get(get_user_by_id).patch(update_user).delete(delete_user),
         )
+        .route("/avatar", axum::routing::post(upload_avatar))
         .route_layer(axum::middleware::from_fn(admin_only));
 
     let user_routes: ApiRouter<AppState> = ApiRouter::new()
         .api_route("/get-me", get(get_me))
+        .route("/me/avatar", axum::routing::post(upload_my_avatar))
         .merge(user_admin_routes)
         .route_layer(axum::middleware::from_fn_with_state(
             Arc::new(appstate.clone()),
@@ -136,8 +151,17 @@ pub fn app(appstate: AppState) -> Router {
         .api_route("/invite", get(get_invite))
         .api_route("/register", post(register_user));
 
-    let assistance_routes: ApiRouter<AppState> = ApiRouter::new()
+    // the socket marks any student and streams the whole roll, so it is staff only;
+    // students check themselves in with the daily QR
+    let assistance_admin_routes: ApiRouter<AppState> = ApiRouter::new()
         .route("/", axum::routing::get(ws_handler))
+        .api_route("/daily-code", get(get_daily_code))
+        .route_layer(axum::middleware::from_fn(admin_only));
+
+    let assistance_routes: ApiRouter<AppState> = ApiRouter::new()
+        .api_route("/me", get(get_my_assistances))
+        .api_route("/check-in", post(check_in))
+        .merge(assistance_admin_routes)
         .route_layer(axum::middleware::from_fn_with_state(
             Arc::new(appstate.clone()),
             auth_middleware,

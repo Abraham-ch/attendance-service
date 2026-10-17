@@ -7,7 +7,7 @@ function LiveRoll() {
   return (
     <Section id="live" index="02" kicker="Live" title="One scan, every screen" aside="WebSocket">
       <div className="grid items-center gap-12 lg:grid-cols-[1.2fr_1fr]">
-        <RollPanel title="Period 2026-I · sample roll" rows={roll} />
+        <RollPanel title="Period 2026-I · sample roll" rows={roll} live />
         <div className="flex flex-col items-start gap-4">
           <Label tone="brass">Attendance feed</Label>
           <Heading as="h3" size="item">

@@ -390,6 +390,7 @@ async fn main() {
             gender: student.4,
             phone: student.5,
             address: student.6.map(String::from),
+            avatar: None,
             created_at: Utc::now(),
             updated_at: Utc::now(),
         };
@@ -422,6 +423,7 @@ async fn main() {
                     gender as "gender: Gender",
                     phone,
                     address,
+                    NULL::TEXT AS avatar,
                     created_at,
                     updated_at
             "#,

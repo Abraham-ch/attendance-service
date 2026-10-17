@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n                SELECT\n                    id,\n                    first_name,\n                    last_name,\n                    email,\n                    password,\n                    avatar,\n                    role AS \"role: Role\",\n                    created_at,\n                    updated_at\n                FROM users\n                WHERE id = $1\n            ",
+  "query": "\n                SELECT\n                    id,\n                    first_name,\n                    last_name,\n                    email,\n                    password,\n                    avatar,\n                    student_id,\n                    role AS \"role: Role\",\n                    created_at,\n                    updated_at\n                FROM users\n                WHERE $1::TEXT IS NULL\n                    OR (first_name || ' ' || last_name) ILIKE $1\n                    OR email ILIKE $1\n                ORDER BY last_name, first_name, id\n                LIMIT $2 OFFSET $3\n            ",
   "describe": {
     "columns": [
       {
@@ -35,6 +35,11 @@
       },
       {
         "ordinal": 6,
+        "name": "student_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 7,
         "name": "role: Role",
         "type_info": {
           "Custom": {
@@ -50,19 +55,21 @@
         }
       },
       {
-        "ordinal": 7,
+        "ordinal": 8,
         "name": "created_at",
         "type_info": "Timestamptz"
       },
       {
-        "ordinal": 8,
+        "ordinal": 9,
         "name": "updated_at",
         "type_info": "Timestamptz"
       }
     ],
     "parameters": {
       "Left": [
-        "Uuid"
+        "Text",
+        "Int8",
+        "Int8"
       ]
     },
     "nullable": [
@@ -72,10 +79,11 @@
       false,
       false,
       false,
+      true,
       false,
       false,
       false
     ]
   },
-  "hash": "9b88f8c5600265609c81daf42fd07f4ee0b906fb964ec48ca8249113c8a313de"
+  "hash": "dcbeedb3cd87519d0f9404e515613326f0b655eb031816c6f3a0f9220fc08696"
 }

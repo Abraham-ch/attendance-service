@@ -25,6 +25,7 @@ impl User {
                     email,
                     password,
                     avatar,
+                    student_id,
                     role AS "role: Role",
                     created_at,
                     updated_at
@@ -68,6 +69,7 @@ impl User {
             email: new_user.email,
             password: user_pasword,
             avatar: new_user.avatar,
+            student_id: None,
             role: new_user.role,
             created_at: Utc::now(),
             updated_at: Utc::now(),
@@ -97,6 +99,7 @@ impl User {
                     email,
                     avatar,
                     password,
+                    student_id,
                     role AS "role: Role",
                     created_at,
                     updated_at
@@ -126,6 +129,7 @@ impl User {
                     email,
                     password,
                     avatar,
+                    student_id,
                     role AS "role: Role",
                     created_at,
                     updated_at
@@ -193,6 +197,7 @@ impl User {
                     email,
                     password,
                     avatar,
+                    student_id,
                     role AS "role: Role",
                     created_at,
                     updated_at
@@ -264,6 +269,7 @@ impl User {
                     email,
                     password,
                     avatar,
+                    student_id,
                     role AS "role: Role",
                     created_at,
                     updated_at

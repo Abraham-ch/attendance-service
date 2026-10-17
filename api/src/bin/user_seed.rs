@@ -190,6 +190,7 @@ async fn main() {
             first_name: user.0.to_string(),
             last_name: user.1.to_string(),
             avatar: user.2.to_string(),
+            student_id: None,
             email: user.3.to_string(),
             password: user_password,
             role: user.5,

@@ -4,16 +4,36 @@ import { decodeFromCanvas } from '@/lib/utils'
 
 const corner = 'absolute size-8 border-brass'
 
-type Props = { active: boolean; onDetect: (text: string) => void }
+type Props = {
+  active: boolean
+  onDetect: (text: string) => void
+  onError: (message: string) => void
+}
 
-function ScanFrame({ active, onDetect }: Props) {
+// Browsers only expose the camera on HTTPS or localhost, so on http://<lan-ip> there is
+// no permission prompt at all: navigator.mediaDevices is just undefined
+function cameraError(err: unknown) {
+  if (!window.isSecureContext)
+    return 'The camera needs HTTPS, open the app over https:// (or localhost)'
+  const name = err instanceof DOMException ? err.name : ''
+  if (name === 'NotAllowedError')
+    return 'Camera access was denied, allow it in the browser site settings'
+  if (name === 'NotFoundError' || name === 'OverconstrainedError')
+    return 'No camera found on this device'
+  if (name === 'NotReadableError') return 'The camera is in use by another app'
+  return `Could not start the camera: ${String(err)}`
+}
+
+function ScanFrame({ active, onDetect, onError }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   const onDetectRef = useRef(onDetect)
+  const onErrorRef = useRef(onError)
   useLayoutEffect(() => {
     onDetectRef.current = onDetect
-  }, [onDetect])
+    onErrorRef.current = onError
+  }, [onDetect, onError])
 
   useEffect(() => {
     const video = videoRef.current
@@ -71,7 +91,9 @@ function ScanFrame({ active, onDetect }: Props) {
       }
     }
 
-    start().catch((err) => console.error('Camera error:', err))
+    start().catch((err) => {
+      if (!cancelled) onErrorRef.current(cameraError(err))
+    })
 
     return () => {
       cancelled = true

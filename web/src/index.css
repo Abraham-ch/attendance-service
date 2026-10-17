@@ -119,3 +119,31 @@
       transparent
     );
 }
+
+/* Printing the student ID card (IdCardModal): only the card, at real CR80 size */
+@media print {
+  @page {
+    margin: 1cm;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  .id-card,
+  .id-card * {
+    visibility: visible;
+  }
+
+  .id-card {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 85.6mm;
+    print-color-adjust: exact;
+  }
+
+  dialog::backdrop {
+    background: none;
+  }
+}

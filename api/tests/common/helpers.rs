@@ -71,6 +71,7 @@ pub async fn create_student(server: &TestServer, token: &String) -> TestResponse
         gender: Gender::Male,
         phone: None,
         address: None,
+        avatar: None,
         created_at: Utc::now(),
         updated_at: Utc::now(),
     };

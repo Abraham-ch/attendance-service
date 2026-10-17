@@ -1,15 +1,28 @@
 import { type Column, DataTable, PageHeader, Pagination, SearchForm } from '@components/common'
-import { Button, Label } from '@components/ui'
+import { Avatar, Button, IconButton, Label } from '@components/ui'
+import { useAuth } from '@lib/context/AuthContext'
+import { canManage } from '@lib/roles'
 import { useState } from 'react'
 import { useLoaderData, useRevalidator } from 'react-router'
 
 import type { Page } from '@/types/records'
 import type { User } from '@/types/user'
 
-import { CreateUserModal } from './sections'
+import { CreateUserModal, EditUserModal } from './sections'
 
 const columns: Column<User>[] = [
-  { header: 'Name', cell: (row) => `${row.first_name} ${row.last_name}` },
+  {
+    header: 'Name',
+    cell: (row) => {
+      const name = `${row.first_name} ${row.last_name}`
+      return (
+        <span className="flex items-center gap-3">
+          <Avatar src={row.avatar} name={name} className="size-8 text-xs" />
+          {name}
+        </span>
+      )
+    }
+  },
   { header: 'Email', cell: (row) => row.email },
   {
     header: 'Role',
@@ -21,7 +34,22 @@ const columns: Column<User>[] = [
 function Users() {
   const { items, total, page, per_page } = useLoaderData<Page<User>>()
   const revalidator = useRevalidator()
+  const { user: me } = useAuth()
   const [creating, setCreating] = useState(false)
+  const [editing, setEditing] = useState<User | null>(null)
+
+  const options: Column<User> = {
+    header: 'Options',
+    cell: (row) =>
+      canManage(me, row) && (
+        <IconButton
+          icon="edit"
+          label={`Edit ${row.first_name} ${row.last_name}`}
+          onClick={() => setEditing(row)}
+          className="-my-2"
+        />
+      )
+  }
 
   return (
     <>
@@ -30,12 +58,22 @@ function Users() {
       </PageHeader>
       <SearchForm placeholder="Search by name or email" />
       <DataTable
-        columns={columns}
+        columns={[...columns, options]}
         rows={items}
         rowKey={(row) => row.id}
         footer={<Pagination page={page} perPage={per_page} total={total} />}
       />
 
+      {editing && (
+        <EditUserModal
+          user={editing}
+          onClose={() => setEditing(null)}
+          onSaved={() => {
+            setEditing(null)
+            revalidator.revalidate()
+          }}
+        />
+      )}
       {creating && (
         <CreateUserModal
           onClose={() => setCreating(false)}

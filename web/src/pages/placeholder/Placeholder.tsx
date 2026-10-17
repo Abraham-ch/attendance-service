@@ -1,7 +1,6 @@
 import { ArrowLink, Container, Heading, Label } from '@components/ui'
 import { useLocation } from 'react-router'
 
-// ponytail: stands in for every page that is not built yet, replace per route in route.ts
 function Placeholder() {
   const { pathname } = useLocation()
 

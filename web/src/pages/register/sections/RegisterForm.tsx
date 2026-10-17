@@ -1,9 +1,10 @@
-import { Field } from '@components/common'
+import { AvatarPicker, Field } from '@components/common'
 import { Button, Heading, Label, Text } from '@components/ui'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { apiError } from '@lib/api'
+import { apiError, uploadMyAvatar } from '@lib/api'
 import { register as registerUser } from '@lib/auth'
 import { useAuth } from '@lib/context/AuthContext'
+import { toast } from '@lib/toast'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useLoaderData, useNavigate, useSearchParams } from 'react-router'
@@ -18,6 +19,7 @@ function RegisterForm() {
   const navigate = useNavigate()
   const { setUser } = useAuth()
   const [error, setError] = useState('')
+  const [avatar, setAvatar] = useState<Blob | null>(null)
   const {
     register,
     handleSubmit,
@@ -27,6 +29,14 @@ function RegisterForm() {
   const onSubmit = handleSubmit(async ({ password }) => {
     try {
       const { user } = await registerUser(params.get('token') ?? '', password)
+      // the account exists and the session is open by now, a failed picture doesn't undo that
+      if (avatar) {
+        try {
+          user.avatar = await uploadMyAvatar(avatar)
+        } catch (err) {
+          toast(`Your account is ready, but the picture wasn't saved: ${apiError(err)}`, 'error')
+        }
+      }
       setUser(user)
       navigate(paths.dashboard, { replace: true })
     } catch (err) {
@@ -46,6 +56,12 @@ function RegisterForm() {
           log in.
         </Text>
       </div>
+      <AvatarPicker
+        name={`${invite.first_name} ${invite.last_name}`}
+        label="Your picture (optional, for your student card)"
+        onChange={setAvatar}
+        onError={setError}
+      />
       <Field
         label="Password"
         type="password"
