@@ -16,7 +16,7 @@ import type {
 } from '@/types/records'
 import type { User } from '@/types/user'
 
-import { getCurrentUser } from './auth'
+import { forgetCurrentUser, getCurrentUser } from './auth'
 import { api } from './axios'
 import type { Spot } from './geo'
 import { isAdmin } from './roles'
@@ -79,7 +79,8 @@ const postAvatar = (path: string, image: Blob) =>
 export const uploadAvatar = (image: Blob) => postAvatar('/user/avatar', image)
 
 // the logged-in user's own picture, saved on their account by the API
-export const uploadMyAvatar = (image: Blob) => postAvatar('/user/me/avatar', image)
+export const uploadMyAvatar = (image: Blob) =>
+  postAvatar('/user/me/avatar', image).finally(forgetCurrentUser)
 
 export const getMyAssistances = () =>
   api.get<Assistance[]>('/assistance/me').then((res) => res.data)

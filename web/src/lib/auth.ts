@@ -7,6 +7,7 @@ export const login = async (data: LoginData): Promise<AuthResponse> => {
   const response = await api.post<AuthResponse>('/auth', data)
 
   localStorage.setItem('token', response.data.token)
+  forgetCurrentUser()
   return response.data
 }
 
@@ -15,15 +16,29 @@ export const register = async (token: string, password: string): Promise<AuthRes
   const response = await api.post<AuthResponse>('/auth/register', { token, password })
 
   localStorage.setItem('token', response.data.token)
+  forgetCurrentUser()
   return response.data
 }
 
 export function logout() {
   localStorage.removeItem('token')
+  forgetCurrentUser()
 }
 
-export const getCurrentUser = async (): Promise<User> => {
-  const response = await api.get<User>('/user/get-me')
+// One GET /user/get-me per token: AuthProvider (run twice by StrictMode in dev) and every
+// roll loader ask for it, they all share this promise. A failed request isn't kept.
+let currentUser: Promise<User> | null = null
 
-  return response.data
+export const getCurrentUser = (): Promise<User> =>
+  (currentUser ??= api
+    .get<User>('/user/get-me')
+    .then((res) => res.data)
+    .catch((error) => {
+      currentUser = null
+      throw error
+    }))
+
+// Next getCurrentUser() asks the API again, for when the token or the user changed
+export function forgetCurrentUser() {
+  currentUser = null
 }
