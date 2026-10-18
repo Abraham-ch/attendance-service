@@ -7,10 +7,10 @@
   --font-ui: var(--font-monospace);
   --radius-ui: 0px;
 
-  --color-paper: #f4f1ea;
-  --color-surface: #ebe7de;
-  --color-line: #d9d3c6;
-  --color-line-lit: #bfb8a9;
+  --color-paper: #fafafa;
+  --color-surface: #f2f3f5;
+  --color-line: #e1e4e8;
+  --color-line-lit: #c5cad1;
   --color-ink: #14161a;
   --color-mute: #4a5058;
   --color-dim: #666c74;
@@ -110,7 +110,7 @@
   background-image:
     radial-gradient(
       40% 45% at 72% 28%,
-      color-mix(in oklab, var(--color-brass) 22%, transparent),
+      color-mix(in oklab, var(--color-brass) 10%, transparent),
       transparent
     ),
     radial-gradient(

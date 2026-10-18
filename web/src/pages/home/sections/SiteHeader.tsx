@@ -10,6 +10,7 @@ function SiteHeader() {
         <Brand />
         <Label className="hidden lg:inline">Attendance · Schools &amp; academies</Label>
         <nav className="flex items-center gap-6">
+          <ArrowLink href={paths.demo}>Try the demo</ArrowLink>
           <ArrowLink href={paths.dashboard}>Dashboard</ArrowLink>
           <ArrowLink href={paths.login}>Sign in</ArrowLink>
         </nav>

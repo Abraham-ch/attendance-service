@@ -97,9 +97,11 @@ type RollStudent = Pick<Student, 'id' | 'first_name' | 'last_name'>
 // Staff get the whole roll, a student only their own records.
 export async function loadRoll(): Promise<{
   me: User
+  periods: Period[]
   period: Period | null
   students: RollStudent[]
   assistances: Assistance[]
+  mine?: Assistance[] // a student's records of every period
 }> {
   const [me, periods] = await Promise.all([getCurrentUser(), getPeriods()])
   const period = periods.find((p) => periodState(p) === 'Current') ?? null
@@ -108,9 +110,11 @@ export async function loadRoll(): Promise<{
     const mine = await getMyAssistances()
     return {
       me,
+      periods,
       period,
       students: me.student_id ? [{ ...me, id: me.student_id }] : [],
-      assistances: mine.filter((a) => a.period_id === period?.id)
+      assistances: mine.filter((a) => a.period_id === period?.id),
+      mine
     }
   }
 
@@ -119,5 +123,21 @@ export async function loadRoll(): Promise<{
     getStudents({ per_page: 1000 }),
     period ? getPeriodAssistances(period.id) : []
   ])
-  return { me, period, students, assistances }
+  return { me, periods, period, students, assistances }
+}
+
+// The roll plus the records of every period, for the charts
+export async function loadOverview() {
+  const roll = await loadRoll()
+  // ponytail: one request per period, a GET /assistance/stats if schools keep many periods
+  const history =
+    roll.mine ??
+    (
+      await Promise.all(
+        roll.periods.map((p) =>
+          p.id === roll.period?.id ? roll.assistances : getPeriodAssistances(p.id)
+        )
+      )
+    ).flat()
+  return { ...roll, history }
 }

@@ -2,6 +2,7 @@ import axios, { type InternalAxiosRequestConfig } from 'axios'
 
 import { paths } from '@/paths'
 
+import { demoAdapter, isDemo } from './demo'
 import { getToken } from './utils'
 
 const API_URL = import.meta.env.VITE_API_URL
@@ -19,6 +20,7 @@ api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   if (token) {
     config.headers.set('Authorization', `Bearer ${token}`)
   }
+  if (isDemo()) config.adapter = demoAdapter
   return config
 })
 

@@ -4,6 +4,7 @@ import { useLoaderData } from 'react-router'
 import type { Assistance, NewAssistance } from '@/types/records'
 
 import type { loadRoll } from './api'
+import { demoScan, isDemo } from './demo'
 import { isAdmin } from './roles'
 import { getToken } from './utils'
 
@@ -30,6 +31,14 @@ export function useAssistanceSocket(
 
   useEffect(() => {
     if (!enabled) return
+    if (isDemo()) {
+      // no server to connect to: a student walks in every few seconds instead
+      const timer = setInterval(() => {
+        const assistance = demoScan()
+        if (assistance) onAssistanceRef.current(assistance)
+      }, 6000)
+      return () => clearInterval(timer)
+    }
     const ws = new WebSocket(socketUrl())
     socket.current = ws
     ws.onopen = () => setConnected(true)
@@ -39,12 +48,17 @@ export function useAssistanceSocket(
   }, [enabled])
 
   function send(scan: NewAssistance) {
+    if (isDemo()) {
+      const assistance = demoScan(scan.student_id)
+      if (assistance) onAssistanceRef.current(assistance)
+      return true
+    }
     if (socket.current?.readyState !== WebSocket.OPEN) return false
     socket.current.send(JSON.stringify(scan))
     return true
   }
 
-  return { connected, send }
+  return { connected: connected || (enabled && isDemo()), send }
 }
 
 export const today = () => new Date().toISOString().slice(0, 10) // the API stores UTC dates

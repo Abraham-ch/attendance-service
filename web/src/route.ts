@@ -4,10 +4,15 @@ import {
   getRepresentatives,
   getStudents,
   getUsers,
+  loadOverview,
   loadRoll
 } from '@lib/api'
 import { guestOnly, requireAuth } from '@lib/guard'
-import { createBrowserRouter, type LoaderFunctionArgs } from 'react-router'
+import {
+  createBrowserRouter,
+  type LoaderFunctionArgs,
+  type ShouldRevalidateFunctionArgs
+} from 'react-router'
 
 import Assistance from '@/pages/dashboard/Assistance'
 import DashboardLayout from '@/pages/dashboard/DashboardLayout'
@@ -18,6 +23,7 @@ import Representatives from '@/pages/dashboard/Representatives'
 import RouteError from '@/pages/dashboard/RouteError'
 import Students from '@/pages/dashboard/students/Students'
 import Users from '@/pages/dashboard/users/Users'
+import Demo from '@/pages/demo/Demo'
 import Home from '@/pages/home/Home'
 import Login from '@/pages/login/Login'
 import Placeholder from '@/pages/placeholder/Placeholder'
@@ -28,6 +34,7 @@ import { paths } from './paths'
 export const router = createBrowserRouter([
   { path: paths.home, Component: Home },
   { path: paths.login, Component: Login, loader: guestOnly },
+  { path: paths.demo, Component: Demo },
   {
     path: paths.register,
     Component: Register,
@@ -42,9 +49,22 @@ export const router = createBrowserRouter([
     Component: DashboardLayout,
     loader: requireAuth,
     children: [
-      { index: true, Component: Overview, loader: loadRoll },
+      { index: true, Component: Overview, loader: loadOverview },
       { path: paths.qrScan, Component: QrScan, loader: loadRoll },
-      { path: paths.assistance, Component: Assistance, loader: loadRoll },
+      {
+        path: paths.assistance,
+        Component: Assistance,
+        loader: loadRoll,
+        // search and pages are cut from the loaded roll, refetching it for them is wasted
+        shouldRevalidate: ({
+          currentUrl,
+          nextUrl,
+          defaultShouldRevalidate
+        }: ShouldRevalidateFunctionArgs) =>
+          currentUrl.pathname === nextUrl.pathname && currentUrl.search !== nextUrl.search
+            ? false
+            : defaultShouldRevalidate
+      },
       {
         path: paths.students,
         Component: Students,

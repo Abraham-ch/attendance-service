@@ -2,6 +2,7 @@ import type { AuthResponse, LoginData } from '@/types/auth'
 import type { User } from '@/types/user'
 
 import { api } from './axios'
+import { DEMO_TOKEN } from './demo'
 
 export const login = async (data: LoginData): Promise<AuthResponse> => {
   const response = await api.post<AuthResponse>('/auth', data)
@@ -18,6 +19,13 @@ export const register = async (token: string, password: string): Promise<AuthRes
   localStorage.setItem('token', response.data.token)
   forgetCurrentUser()
   return response.data
+}
+
+// Signs in to demo mode (lib/demo.ts), answers the demo account
+export function startDemo(): Promise<User> {
+  localStorage.setItem('token', DEMO_TOKEN)
+  forgetCurrentUser()
+  return getCurrentUser()
 }
 
 export function logout() {

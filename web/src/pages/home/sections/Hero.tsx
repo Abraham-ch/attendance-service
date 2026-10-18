@@ -1,4 +1,6 @@
-import { Backdrop, Container, Heading, Label, Mark, Text } from '@components/ui'
+import { ArrowLink, Backdrop, Container, Heading, Label, Mark, Text } from '@components/ui'
+
+import { paths } from '@/paths'
 
 function Hero() {
   return (
@@ -9,11 +11,16 @@ function Hero() {
           <Heading as="h1" size="display">
             Roll call <span className="block text-brass">in real time</span>
           </Heading>
-          <Text className="max-w-md text-lg">
-            Every scan becomes an <strong>attendance record</strong> the moment it happens.
-            Students, representatives and periods live in <strong>one API</strong>, and every open
-            screen sees the roll update without a refresh.
-          </Text>
+          <div className="flex max-w-md flex-col items-start gap-6">
+            <Text className="text-lg">
+              Every scan becomes an <strong>attendance record</strong> the moment it happens.
+              Students, representatives and periods live in <strong>one API</strong>, and every open
+              screen sees the roll update without a refresh.
+            </Text>
+            <ArrowLink href={paths.demo} size="lead">
+              Try the live demo
+            </ArrowLink>
+          </div>
         </div>
         <div className="flex flex-wrap items-center justify-between gap-x-10 gap-y-2 border-t border-line py-5">
           <Label>Rust · Axum · PostgreSQL</Label>
