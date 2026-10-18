@@ -5,9 +5,11 @@ use dotenvy::{dotenv, var};
 use sqlx::postgres::PgPoolOptions;
 use tokio::sync::broadcast;
 
+mod tui;
+
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    tracing_subscriber::fmt::init();
+    tui::init();
     dotenv().ok();
 
     let db = var("DATABASE_URL").context("Expected database url.")?;
@@ -21,7 +23,7 @@ async fn main() -> anyhow::Result<()> {
 
     let (tx, _) = broadcast::channel::<String>(100);
 
-    println!("Connected to database");
+    tracing::info!("Connected to database");
 
     let appstate = AppState {
         pool,
@@ -32,7 +34,7 @@ async fn main() -> anyhow::Result<()> {
     let listener = tokio::net::TcpListener::bind(&api)
         .await
         .context(format!("Failed to listen on port: {}", &api))?;
-    println!("Listening on http://{}", &api);
+    tracing::info!("Listening on http://{}", &api);
     axum::serve(listener, app(appstate))
         .await
         .context("Failed to serve the app")?;

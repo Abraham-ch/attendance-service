@@ -158,7 +158,7 @@ async fn read(mut receiver: SplitStream<WebSocket>, state: AppState) {
         let scan: NewAssistance = match serde_json::from_str(content.as_str()) {
             Ok(scan) => scan,
             Err(e) => {
-                eprintln!("invalid message: {e}");
+                tracing::warn!("invalid message: {e}");
                 continue;
             }
         };
@@ -169,7 +169,7 @@ async fn read(mut receiver: SplitStream<WebSocket>, state: AppState) {
                     let _ = state.tx.send(json);
                 }
             }
-            Err(e) => eprintln!("db error: {e}"),
+            Err(e) => tracing::error!("db error: {e}"),
         }
     }
 }
