@@ -2,10 +2,10 @@ name: attendance-service
 
 on:
     push:
-        paths: ["api/**", ".sqlx/**", "Cargo.toml", "Cargo.lock", ".github/workflows/rust.yml"]
+        paths: ["api/**", ".sqlx/**", "Cargo.toml", "Cargo.lock", "Dockerfile", "compose.yaml", ".github/workflows/rust.yml"]
         branches: ["main"]
     pull_request:
-        paths: ["api/**", ".sqlx/**", "Cargo.toml", "Cargo.lock", ".github/workflows/rust.yml"]
+        paths: ["api/**", ".sqlx/**", "Cargo.toml", "Cargo.lock", "Dockerfile", "compose.yaml", ".github/workflows/rust.yml"]
         branches: ["main"]
 
 env:
@@ -38,7 +38,7 @@ jobs:
               run: cargo install sqlx-cli
 
             - name: create database
-              run: docker compose up -d --wait
+              run: docker compose up -d --wait postgres
 
             - name: create tables
               run: sqlx migrate run
